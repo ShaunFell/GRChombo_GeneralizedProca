@@ -1,0 +1,39 @@
+# Build files
+*_F.H
+d
+o
+p
+f
+*.ex
+ipo_out.optrpt
+
+# Scheduler files
+jobscript*
+*.pbs
+
+# Example output
+Weyl_integral*
+*ExtractionOut_*
+*.out
+*.dat
+*.hdf5
+LB.txt
+time.table.*
+pout.*
+hdf5
+pout
+data
+datasets
+
+# Documentation
+Doxygen/html
+
+# Other
+.bashrc
+*.s
+.DS_Store
+log*
+.*.sw[n-p]
+*.dSYM
+*.patch
+*.log
