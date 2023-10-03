@@ -18,7 +18,7 @@ namespace ADMVars
         Tensor<2, Tensor<1, data_t>> d1_gamma;
         Tensor<1, data_t> d1_lapse;
         Tensor<2, data_t> d1_shift;
-    }
+    };
 }//end of ADMVars namespace
 
 

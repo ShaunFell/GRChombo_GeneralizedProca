@@ -1,0 +1,5 @@
+index of spatial Proca vector is DOWN
+index of electric vector is UP
+shift vector is index UP
+
+advection terms are the gradient projected along the shift: \beta^j d_j x_i
