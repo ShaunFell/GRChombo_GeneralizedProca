@@ -7,36 +7,21 @@
 #define USERVARIABLES_HPP
 
 #include "ArrayTools.hpp"
-#include "DiagnosticVariables.hpp"
+#include "CCZ4UserVariables.hpp"
+#include "EmptyDiagnosticVariables.hpp"
 
 /// This enum gives the index of every variable stored in the grid
 enum
 {
-    c_phi,
-
-    c_Avec1,
-    c_Avec2,
-    c_Avec3,
-
-    c_Evec1,
-    c_Evec2,
-    c_Evec3,
-
-    c_Z,
-    NUM_VARS
+    // Note that it is important that the first enum value is set to 1 more than
+    // the last CCZ4 var enum
+    NUM_VARS = NUM_CCZ4_VARS,
 };
 
 namespace UserVariables
 {
-static const std::array<std::string, NUM_VARS> variable_names = {
-    "phi",
-
-    "Avec1", "Avec2", "Avec3",
-
-    "Evec1", "Evec2", "Evec3",
-
-    "Z"};
-
+static const std::array<std::string, NUM_VARS> variable_names =
+    ccz4_variable_names;
 } // namespace UserVariables
 
 #include "UserVariables.inc.hpp"
