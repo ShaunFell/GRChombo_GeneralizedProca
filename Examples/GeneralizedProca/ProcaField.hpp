@@ -1,7 +1,6 @@
 #ifndef PROCAFIELD_H_INCLUDED
 #define PROCAFIELD_H_INCLUDED
 
-#include "ADMVariables.hpp"
 #include "CCZ4Geometry.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "Potential.hpp"
@@ -58,17 +57,15 @@ public:
         }
     }; //end of struct Diff2Vars
 
-    //struct for non-grid ADM vars
-    template <class data_t>
-    using MetricVars = typename ADMVars::template Vars<data_t>;
+
 
     //method that computes EM tensor, given vars and derivatives
     template <class data_t, template <typename> class vars_t>
     emtensor_t<data_t> compute_emtensor(
         const vars_t<data_t> &vars, //the value of the variables
         const vars_t<Tensor<1,data_t>> &d1, //the 1st derivatives
-        const Tensor<2, data_t> &gamma_UU, //the inverse metric
-        const Tensor<3, data_t> &chris_phys_ULL //conformal christoffel symbols
+        const Tensor<2, data_t> &h, //the inverse metric
+        const Tensor<3, data_t> &chris_ULL //conformal christoffel symbols
     ) const;
 
 
@@ -83,5 +80,7 @@ public:
     ) const; 
 };
 
+
+#include "ProcaField.impl.hpp"
 #endif //PROCAFIELD_H_INCLUDED
 

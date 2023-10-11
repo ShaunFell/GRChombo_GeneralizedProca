@@ -1,4 +1,13 @@
-#include "ProcaField.hpp"
+/*
+implementation file for ProcaField.hpp
+*/
+
+#if !defined(PROCAFIELD_H_INCLUDED)
+#error "This file should only be included through ProcaField.hpp"
+#endif 
+
+#ifndef PROCAFIELD_IMPL_H_INCLUDEDP
+#define PROCAFIELD_IMPL_H_INCLUDED
 
 
 
@@ -7,21 +16,28 @@ template <class data_t, template <typename> class vars_t>
 emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
         const vars_t<data_t> &vars, //the value of the variables
         const vars_t<Tensor<1,data_t>> &d1, //the 1st derivatives
-        const Tensor<2, data_t> &gamma_UU, //the inverse metric
-        const Tensor<3, data_t> &chris_phys_ULL //conformal christoffel symbols
+        const Tensor<2, data_t> &h_UU, //the inverse metric
+        const Tensor<3, data_t> &chris_ULL //conformal christoffel symbols
     ) const {
         emtensor_t<data_t> out;
 
-        //Compute potential and its derivatives
-        data_t V; //value of potential
-        data_t dVdA; //first derivative of Potential function w.r.t argument
-        data_t dVddA; //second derivative...
-        m_potential.compute_potential(V, dVdA, dVddA, vars, d1, gamma_UU);
+        //compute contravariant physical spatial metric
+        Tensor<2,data_t> gamma_UU;
+        FOR2(i,j){
+            gamma_UU[i][j] = h_UU[i][j]/vars.chi;
+        };
 
-        //initialize components of EM tensor
-        data_t rho_potential { 0 };
-        Tensor<1, data_t> Si_potential;
-        Tensor<2, data_t> Sij_potential;
+        //compute covariant physical spatial metric
+        Tensor<2, data_t> gamma_LL { TensorAlgebra::compute_inverse_sym(gamma_UU) }; //inverse of inverse metric -> pure covariant spatial metric
+
+        //compute physical christoffel symbols
+        Tensor<3, data_t> chris_phys_ULL {TensorAlgebra::compute_phys_chris(d1.chi, vars.chi, vars.h, h_UU, chris_ULL) };
+
+        //Compute potential and its derivatives
+        data_t V {0.}; //value of potential
+        data_t dVdA {0.}; //first derivative of Potential function w.r.t argument
+        data_t dVddA {0.}; //second derivative...
+        m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
 
         
         // D_i A_j  3-covariant derivative of spatial covector
@@ -39,7 +55,6 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
             DA_antisym[i][j] = d1.Avec[j][i] - d1.Avec[i][j];
         };
 
-        Tensor<2, data_t> gamma_LL { TensorAlgebra::compute_inverse_sym(gamma_UU) }; //inverse of inverse metric
 
         //Electric Field Norm
         data_t Enorm {0};
@@ -60,10 +75,10 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
         //Eulerian Momentum
         FOR1(i){
             out.Si[i] = 0; //zero initialize
-            out.Si += vars.phi*dVdA*vars.Avec[i];
+            out.Si[i] += vars.phi*dVdA*vars.Avec[i];
             
             FOR1(j){
-                out.Si += 1./2. * (vars.Evec[j]*DA_antisym[i][j]);
+                out.Si[i] += 1./2. * (vars.Evec[j]*DA_antisym[i][j]);
             };
         };
 
@@ -88,6 +103,7 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
             out.S += out.Sij[i][j]*gamma_UU[i][j];
         };
 
+        return out;
     };
 
 
@@ -107,12 +123,28 @@ void ProcaField<potential_t>::add_matter_rhs(
 
 
 
-    //calculate full spatial christoffel symbols
-    const auto gamma_UU = TensorAlgebra::compute_inverse(vars.gamma);
-    const auto chris_phys = TensorAlgebra::compute_christoffel(d1.gamma, gamma_UU);
+    //calculate conformal contravariant metric and conformal christoffel symbols
+    const Tensor<2,data_t> h_UU = TensorAlgebra::compute_inverse(vars.h);
+    const Tensor<3, data_t> chris_ULL = TensorAlgebra::compute_christoffel(d1.h, h_UU).ULL;
 
-    data_t V, dVdA, dVddA;
-    m_potential.compute_potential(V, dVdA, dVddA, vars, d1, gamma_UU);
+    //compute physical christoffel symbols
+    Tensor<3, data_t> chris_phys {TensorAlgebra::compute_phys_chris(d1.chi, vars.chi, vars.h, h_UU, chris_ULL) };
+
+    //calulate physical contravariant spatial metric
+    Tensor<2,data_t> gamma_UU;
+    FOR2(i,j){
+        gamma_UU[i][j] = h_UU[i][j]/vars.chi;
+    };
+
+    //physical covariant spatial metric
+    Tensor<2, data_t> gamma_LL { TensorAlgebra::compute_inverse_sym(gamma_UU) };
+
+
+    //compute potential and its derivatives
+    data_t V {0.};
+    data_t dVdA {0.};
+    data_t dVddA {0.};
+    m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
 
 
     //evolution equations for spatial part of vector field (index down)
@@ -120,7 +152,7 @@ void ProcaField<potential_t>::add_matter_rhs(
         total_rhs.Avec[i] = - vars.lapse*d1.phi[i] - vars.phi*d1.lapse[i] + advec.Avec[i];
 
         FOR1(j){
-            total_rhs.Avec[i] += - vars.lapse*vars.gamma[i][j]*vars.Evec[j] + vars.Avec[j]*d1.shift[j][i];
+            total_rhs.Avec[i] += - vars.lapse*gamma_LL[i][j]*vars.Evec[j] + vars.Avec[j]*d1.shift[j][i];
         };
     };
 
@@ -145,15 +177,18 @@ void ProcaField<potential_t>::add_matter_rhs(
 
     //evolution equation for auxiliary constraint-damping scalar field Z
     total_rhs.Z = -2*vars.lapse*dVdA*vars.phi - m_params.vector_damping*vars.lapse*vars.Z + advec.Z;
-
     FOR1(i){
         total_rhs.Z += -vars.lapse*d1.Evec[i][i];
         FOR1(j){
-            total_rhs.Z += -vars.lapse*chris_phys.ULL[i][i][j]*vars.Evec[j];
+            total_rhs.Z += -vars.lapse*chris_phys[i][i][j]*vars.Evec[j];
         }
     }
 
 
 }
+
+
+
+#endif //PROCAFIELD_IMPL_H_INCLUDED
 
 

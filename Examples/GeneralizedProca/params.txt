@@ -32,13 +32,17 @@ print_progress_only_to_rank_0 = 1
 
 # ignore_checkpoint_name_mismatch = 0
 # write_plot_ghosts = 0
+#################################################
+#Physical constants
+G_Newton = 1
 
 #################################################
 # Initial Data parameters
 
+#Kerr parameters
 kerr_mass = 1.0
 kerr_spin = 0.5
-# kerr_center = 64 64 64 # defauts to center
+kerr_center = 64 64 64 # defauts to center
 kerr_spindir = 0 0 1 #along z-axis
 
 
@@ -48,6 +52,10 @@ proca_damping = 1
 #Potential parameters
 proca_mass = 1
 proca_self_interaction = 0.25
+
+#Initial condition parameters
+initial_proca_amplitude = 0.1
+initial_proca_width = 32
 
 #################################################
 # Grid parameters

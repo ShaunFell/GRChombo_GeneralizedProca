@@ -16,6 +16,15 @@
 class InitialProcaData: public KerrBH
 {
 public:
+
+    //typename all variables, CCZ4 variables + Matter
+    template <class data_t>
+    using Vars = typename MatterCCZ4RHS<ProcaField<ProcaPotential>>::template Vars<data_t>;
+    
+    //typename only matter variables
+    template <class data_t>
+    using MatterVars = typename ProcaField<ProcaPotential>::template Vars<data_t>;
+
     struct init_params_t
     {
         double amplitude;
@@ -33,12 +42,7 @@ protected:
 
 public:
     
-    template <class data_t>
-    using MetricVars = ADMVars::Vars<data_t>;
-
-    template <class data_t>
-    using MatterVars = ProcaField<ProcaPotential>::template Vars<data_t>;
-
+    //constructor
     InitialProcaData(init_params_t a_params, PotentialParams b_params, KerrParams c_params, double a_dx): 
         KerrBH(c_params, a_dx), m_dx{a_dx}, m_params{a_params}, m_paramsPotential{b_params}, m_paramsKerr{c_params}
     {
@@ -54,8 +58,8 @@ public:
         
         
         //flush all variables on cell
-        MatterVars<data_t> vars;
-        VarsTools::assign(vars,0.);
+        MatterVars<data_t> mattervars;
+        VarsTools::assign(mattervars,0.);
 
 
         //compute Kerr metric components
@@ -95,16 +99,16 @@ public:
 
         
         
-        vars.Avec[0] = m_params.amplitude*pow(conformalFact, 3./2.)*exp(-radius/r0);
-        vars.Avec[1] = 0.;
-        vars.Avec[2] = 0.;
-        vars.phi = 0;
+        mattervars.Avec[0] = m_params.amplitude*pow(conformalFact, 3./2.)*exp(-radius/r0);
+        mattervars.Avec[1] = 0.;
+        mattervars.Avec[2] = 0.;
+        mattervars.phi = 0;
         FOR1(i){
-            vars.Evec[i] = 0.;
-        }
+            mattervars.Evec[i] = 0.;
+        };
  
 
-        current_cell.store_vars(vars);
+        current_cell.store_vars(mattervars);
 
     };
 

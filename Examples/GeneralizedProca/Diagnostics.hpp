@@ -1,7 +1,6 @@
 #ifndef DIAGNOSTIC_H_INCLUDED
 #define DIAGNOSTIC_H_INCLUDED
 
-#include "ADMVariables.hpp"
 #include "CCZ4Geometry.hpp"
 #include "ProcaField.hpp"
 #include "FourthOrderDerivatives.hpp"
@@ -30,14 +29,9 @@ class ProcaConstraint
         //constructor
         ProcaConstraint(double dx, double a_vector_mass, double a_vector_damping, const potential_t potential);
 
-        // use variable definition in Proca class
-        template<class data_t>
-        using MatterVars = typename ProcaField<potential_t>::template Vars<data_t>;
-
-        //ADM vars
-        template<class data_t>
-        using MetricVars = typename ADMVars::template Vars<data_t>;
-
+        // Use the variable definition in CCZ4
+        template <class data_t>
+        using Vars = typename MatterCCZ4<ProcaField<ProcaPotential>>::template Vars<data_t>;
         
         //calculate constraint equations
         template<class data_t>
@@ -54,9 +48,12 @@ class ProcaSquared
     protected:
 
         const FourthOrderDerivatives m_deriv;
-        template<class data_t>
-        using MetricVars = ADMVars::Vars<data_t>;
 
+        //extract all grid variables
+        template <class data_t>
+        using Vars = typename MatterCCZ4<ProcaField<ProcaPotential>>::template Vars<data_t>;
+
+        //extract only matter field variables
         template<class data_t>
         using MatterVars = ProcaField<ProcaPotential>::template Vars<data_t>;
 
@@ -68,6 +65,6 @@ class ProcaSquared
 };
 
 
-
+#include "Diagnostics.impl.hpp"
 #endif //DIAGNOSTIC_H_INCLUDED
 

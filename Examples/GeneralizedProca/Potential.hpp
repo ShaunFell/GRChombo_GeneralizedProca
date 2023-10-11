@@ -3,7 +3,6 @@
 
 
 #include "Tensor.hpp" //for tensorial objects
-#include "ADMVariables.hpp" //adm variables
 
 class ProcaPotential{
     public:
@@ -15,9 +14,6 @@ class ProcaPotential{
         //class parameters
         params_t m_params;
 
-        template <typename data_t>
-        using MetricVars = typename ADMVars::template Vars<data_t>;
-
         //constructor for class
         ProcaPotential(params_t a_params): m_params(a_params) {};
 
@@ -25,12 +21,8 @@ class ProcaPotential{
         template <class data_t, template <typename> class vars_t>
         void compute_potential(data_t V, data_t &dVdA, data_t &dVddA,
                                 const vars_t<data_t> &vars,
-                                const vars_t<Tensor<1,data_t>> &d1,
                                 const Tensor<2, data_t> &gamma_UU) const
         {
-
-        using namespace TensorAlgebra;
-        const auto chris_phys = compute_christoffel(d1.h, gamma_UU); ///compute christoffel symbols using function in TensorAlgebra
 
         const double lambda = m_params.self_interaction; //self interaction coupling
 
