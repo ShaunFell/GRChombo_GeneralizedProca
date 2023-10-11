@@ -11,6 +11,36 @@
 
 
 template <class matter_t> 
+class ExcisionProcaEvolution
+{
+    // Use matter_t class
+    using Vars = typename matter_t::template Vars<double>;
+
+    protected:
+        const double m_dx; //grid spacing
+        const FourthOrderDerivatives m_deriv;
+        const double m_excision_width;
+
+    public:
+
+        //constructor
+        ExcisionProcaEvolution(const double a_dx, double a_excision_width=1.0): m_dx{a_dx}, m_deriv{a_dx}, m_excision_width{a_excision_width} {};
+
+        void compute(const Cell<double> current_cell) const
+        {
+
+
+            
+        }
+
+
+
+
+
+
+
+
+};
 
 
 

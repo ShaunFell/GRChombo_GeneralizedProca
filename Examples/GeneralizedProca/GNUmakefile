@@ -6,7 +6,7 @@
 # Included makefiles need an absolute path to the Chombo installation
 # CHOMBO_HOME := Please set the CHOMBO_HOME locally (e.g. export CHOMBO_HOME=... in bash)
 
-GRCHOMBO_SOURCE = ../../Source
+GRCHOMBO_SOURCE = /home/shaunfell/Documents/Computer/Code/projects/ProblemsWithProca/GRChombo/Source
 
 ebase := Main_GeneralizedProca
 
@@ -15,10 +15,12 @@ LibNames := AMRTimeDependent AMRTools BoxTools
 src_dirs := $(GRCHOMBO_SOURCE)/utils \
             $(GRCHOMBO_SOURCE)/simd  \
             $(GRCHOMBO_SOURCE)/CCZ4  \
+            $(GRCHOMBO_SOURCE)/Matter  \
             $(GRCHOMBO_SOURCE)/BoxUtils  \
             $(GRCHOMBO_SOURCE)/GRChomboCore  \
             $(GRCHOMBO_SOURCE)/TaggingCriteria  \
             $(GRCHOMBO_SOURCE)/AMRInterpolator  \
-            $(GRCHOMBO_SOURCE)/InitialConditions/BlackHoles
+            $(GRCHOMBO_SOURCE)/InitialConditions/BlackHoles \
+            $(GRCHOMBO_SOURCE)/BlackHoles
 
 include $(CHOMBO_HOME)/mk/Make.test

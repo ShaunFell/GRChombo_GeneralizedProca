@@ -12,6 +12,9 @@
 
 // Problem specific includes:
 #include "KerrBH.hpp"
+#include "Potential.hpp"
+#include "ProcaField.hpp"
+#include "InitialProcaData.hpp"
 
 class SimulationParameters : public SimulationParametersBase
 {
@@ -29,6 +32,19 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("kerr_mass", kerr_params.mass);
         pp.load("kerr_spin", kerr_params.spin);
         pp.load("kerr_center", kerr_params.center, center);
+        pp.load("kerr_spindir", kerr_params.spin_direction);
+
+        //proca data
+        pp.load("proca_mass", potential_params.mass);
+        pp.load("proca_self_interaction", potential_params.self_interaction);
+
+        pp.load("proca_damping", proca_params.vector_damping);
+
+        pp.load("initial_proca_width", initialdata_params.width);
+        pp.load("initial_proca_amplitude",initialdata_params.amplitude);
+
+        //constants
+        pp.load("G_Newton", G_Newton);
     }
 
     void check_params()
@@ -50,7 +66,12 @@ class SimulationParameters : public SimulationParametersBase
         }
     }
 
+    double G_Newton;
+
     KerrBH::params_t kerr_params;
+    ProcaPotential::params_t potential_params;
+    ProcaField<ProcaPotential>::params_t proca_params;
+    InitialProcaData::init_params_t initialdata_params;
 };
 
 #endif /* SIMULATIONPARAMETERS_HPP_ */

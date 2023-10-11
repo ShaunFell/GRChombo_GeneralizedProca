@@ -39,6 +39,15 @@ print_progress_only_to_rank_0 = 1
 kerr_mass = 1.0
 kerr_spin = 0.5
 # kerr_center = 64 64 64 # defauts to center
+kerr_spindir = 0 0 1 #along z-axis
+
+
+#Proca parameters
+proca_damping = 1
+
+#Potential parameters
+proca_mass = 1
+proca_self_interaction = 0.25
 
 #################################################
 # Grid parameters

@@ -56,7 +56,7 @@ class KerrBH
     template <class data_t>
     void compute_kerr(
         Tensor<2, data_t>
-            &spherical_g, //!<< The spatial metric in spherical coords
+            &spherical_g, //!<< The spatial metric in spherical coords 
         Tensor<2, data_t>
             &spherical_K, //!<< The extrinsic curvature in spherical coords
         Tensor<1, data_t>

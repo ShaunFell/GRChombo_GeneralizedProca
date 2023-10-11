@@ -16,13 +16,16 @@
 template <class potential_t>
 class ProcaField
 {
-protected: 
-    double m_vector_damping; //local copy of vector damping coefficient
+public: 
+    struct params_t{
+        double vector_damping; //local copy of vector damping coefficient
+    };
+
+    const params_t m_params;
     const potential_t m_potential;
 
-public:
     //constructor, inputs are matter params
-    ProcaField(const potential_t potential, double a_vector_damping): m_vector_damping{a_vector_damping}, m_potential{potential}{};
+    ProcaField(const potential_t potential, params_t a_params): m_params{a_params}, m_potential{potential}{};
 
     template <class data_t> 
     struct Vars{
@@ -63,7 +66,6 @@ public:
     template <class data_t, template <typename> class vars_t>
     emtensor_t<data_t> compute_emtensor(
         const vars_t<data_t> &vars, //the value of the variables
-        const MetricVars<data_t> &metric_vars, //value of metric variables
         const vars_t<Tensor<1,data_t>> &d1, //the 1st derivatives
         const Tensor<2, data_t> &gamma_UU, //the inverse metric
         const Tensor<3, data_t> &chris_phys_ULL //conformal christoffel symbols
@@ -72,14 +74,13 @@ public:
 
     //method which adds in the matter field RHS, given vars and derivatives
     template <class data_t, template <typename> class vars_t, template <typename> class diff2_vars_t, template <typename> class rhs_vars_t>
-    void matter_rhs(
+    void add_matter_rhs(
         rhs_vars_t<data_t> &total_rhs, //RHS terms for all vars
         const vars_t<data_t> &vars, //the value fo the variables
-        const MetricVars<data_t> &metric_vars, //value of metric variables
         const vars_t<Tensor<1, data_t>> &d1, //value of 1st derivs
         const diff2_vars_t<Tensor<2, data_t>> &d2, //2nd derivs
         const vars_t<data_t> &advec //value of the beta^i d_i(var) terms
-    ); 
+    ) const; 
 };
 
 #endif //PROCAFIELD_H_INCLUDED

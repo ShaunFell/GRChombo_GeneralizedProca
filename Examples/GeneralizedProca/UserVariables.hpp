@@ -32,7 +32,7 @@ enum
 
 namespace UserVariables
 {
-static const std::array<std::string, NUM_VARS> variable_names = {
+static const std::array<std::string, NUM_VARS - NUM_CCZ4_VARS> user_variable_names = {
     "phi",
 
     "Avec1", "Avec2", "Avec3",
@@ -40,6 +40,8 @@ static const std::array<std::string, NUM_VARS> variable_names = {
     "Evec1", "Evec2", "Evec3",
 
     "Z"};
+
+static const std::array<std::string, NUM_VARS> variable_names = ArrayTools::concatenate(ccz4_variable_names, user_variable_names);
 
 } // namespace UserVariables
 

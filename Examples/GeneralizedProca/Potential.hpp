@@ -2,8 +2,8 @@
 #define POTANTIAL_H_INCLUDED
 
 
-//#include "Tensor.hpp" //for tensorial objects
-//#include "ADMVariables.hpp" //adm variables
+#include "Tensor.hpp" //for tensorial objects
+#include "ADMVariables.hpp" //adm variables
 
 class ProcaPotential{
     public:
@@ -26,12 +26,11 @@ class ProcaPotential{
         void compute_potential(data_t V, data_t &dVdA, data_t &dVddA,
                                 const vars_t<data_t> &vars,
                                 const vars_t<Tensor<1,data_t>> &d1,
-                                const MetricVars<data_t> &metric_vars) const
+                                const Tensor<2, data_t> &gamma_UU) const
         {
 
         using namespace TensorAlgebra;
-        const auto gamma_UU = compute_inverse(metric_vars.gamma); //inverse of spatial metric calculated using function in TensorAlgebra.hpp
-        const auto chris_phys = compute_christoffel(metric_vars.d1_gamma, gamma_UU); ///compute christoffel symbols using function in TensorAlgebra
+        const auto chris_phys = compute_christoffel(d1.h, gamma_UU); ///compute christoffel symbols using function in TensorAlgebra
 
         const double lambda = m_params.self_interaction; //self interaction coupling
 

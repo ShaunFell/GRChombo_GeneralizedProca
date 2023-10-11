@@ -17,7 +17,7 @@
 #include "SimulationParameters.hpp"
 
 // Problem specific includes:
-#include "KerrBHLevel.hpp"
+#include "ProcaFieldLevel.hpp"
 
 // Chombo namespace
 #include "UsingNamespace.H"
@@ -37,8 +37,8 @@ int runGRChombo(int argc, char *argv[])
     // (To simulate a different problem, define a new child of AMRLevel
     // and an associated LevelFactory)
     GRAMR gr_amr;
-    DefaultLevelFactory<KerrBHLevel> kerr_bh_level_fact(gr_amr, sim_params);
-    setupAMRObject(gr_amr, kerr_bh_level_fact);
+    DefaultLevelFactory<ProcaFieldLevel> proca_field_level_fact(gr_amr, sim_params);
+    setupAMRObject(gr_amr, proca_field_level_fact);
 
     using Clock = std::chrono::steady_clock;
     using Minutes = std::chrono::duration<double, std::ratio<60, 1>>;
