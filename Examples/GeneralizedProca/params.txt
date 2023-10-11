@@ -4,7 +4,7 @@
 #################################################
 # Filesystem parameters
 
-verbosity = 0
+verbosity = 3
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
@@ -98,8 +98,10 @@ isPeriodic = 0 0 0
 # if not periodic, then specify the boundary type
 # 0 = static, 1 = sommerfeld, 2 = reflective
 # (see BoundaryConditions.hpp for details)
+
+#sommerfeld outgoing-radiation condition
 hi_boundary = 1 1 1
-lo_boundary = 1 1 2
+lo_boundary = 1 1 1
 
 # if reflective boundaries selected, must set
 # parity of all vars (in order given by UserVariables.hpp)
