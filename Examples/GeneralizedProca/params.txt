@@ -7,13 +7,13 @@
 verbosity = 3
 
 # location / naming of output files
-# output_path = "" # Main path for all files. Must exist!
-chk_prefix = KerrBH_
-plot_prefix = KerrBHp_
+output_path = "/mnt/DataDrive/Data_Store/ProblemsWithProca/GRChombo/" # Main path for all files. Must exist!
+chk_prefix = GeneralizedProca_
+plot_prefix = GeneralizedProcap_
 # restart_file = KerrBH_000060.3d.hdf5
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
-checkpoint_interval = 50
+checkpoint_interval = 1
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 0

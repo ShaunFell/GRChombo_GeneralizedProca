@@ -9,6 +9,8 @@ implementation file for ProcaField.hpp
 #ifndef PROCAFIELD_IMPL_H_INCLUDEDP
 #define PROCAFIELD_IMPL_H_INCLUDED
 
+//Remove these after debugging
+#include "DebuggingTools.hpp"
 
 
 template <class potential_t>
@@ -38,7 +40,6 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
         data_t dVdA {0.}; //first derivative of Potential function w.r.t argument
         data_t dVddA {0.}; //second derivative...
         m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
-
         
         // D_i A_j  3-covariant derivative of spatial covector
         Tensor<2, data_t> DA;
@@ -131,13 +132,13 @@ void ProcaField<potential_t>::add_matter_rhs(
     Tensor<3, data_t> chris_phys {TensorAlgebra::compute_phys_chris(d1.chi, vars.chi, vars.h, h_UU, chris_ULL) };
 
     //calulate physical contravariant spatial metric
-    Tensor<2,data_t> gamma_UU;
+    Tensor<2, data_t> gamma_LL;
     FOR2(i,j){
-        gamma_UU[i][j] = h_UU[i][j]/vars.chi;
-    };
+        gamma_LL[i][j] = vars.h[i][j]/vars.chi;
+    }
 
     //physical covariant spatial metric
-    Tensor<2, data_t> gamma_LL { TensorAlgebra::compute_inverse_sym(gamma_UU) };
+    Tensor<2, data_t> gamma_UU { TensorAlgebra::compute_inverse_sym(gamma_LL) };
 
 
     //compute potential and its derivatives
@@ -145,7 +146,6 @@ void ProcaField<potential_t>::add_matter_rhs(
     data_t dVdA {0.};
     data_t dVddA {0.};
     m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
-
 
     //evolution equations for spatial part of vector field (index down)
     FOR1(i){
@@ -155,7 +155,6 @@ void ProcaField<potential_t>::add_matter_rhs(
             total_rhs.Avec[i] += - vars.lapse*gamma_LL[i][j]*vars.Evec[j] + vars.Avec[j]*d1.shift[j][i];
         };
     };
-
 
     //evolution equations for Electric vector field (index up)
     FOR1(i){
@@ -183,6 +182,52 @@ void ProcaField<potential_t>::add_matter_rhs(
             total_rhs.Z += -vars.lapse*chris_phys[i][i][j]*vars.Evec[j];
         }
     }
+
+    //covariant derivative of spatial part of Proca field
+    Tensor<2,data_t> DA;
+    FOR2(i,j){
+        DA[i][j] = d1.Avec[j][i];
+        FOR1(k){
+            DA[i][j] += chris_phys[k][i][j]*vars.Avec[k];
+        }
+    }
+
+    //Extrinsic curvature
+    Tensor<2, data_t> ExCurv;
+    FOR2(i,j){
+        ExCurv = (1./vars.chi)*(vars.A[i][j] + 1./3.*vars.h[i][j]*vars.K);
+    }
+
+    //evolution equation for the scalar part of the Proca field
+    data_t gnn { dVdA - 2*dVddA*vars.phi*vars.phi };
+
+    total_rhs.phi = vars.lapse*vars.Z/(2*gnn) + vars.lapse*dVdA*vars.phi*vars.K/(gnn) + advec.phi;
+    FOR1(i){
+        total_rhs.phi += 2*vars.lapse*dVddA*vars.phi*vars.Avec[i]*vars.Evec[i]/gnn;
+
+        FOR1(j){
+            total_rhs.phi += gamma_UU[i][j]*(-vars.lapse*dVdA/gnn*DA[i][j] - dVdA/gnn*vars.Avec[i]*d1.lapse[j] + 2*vars.lapse*dVddA/gnn*2*vars.phi*vars.Avec[i]*d1.phi[j]);
+
+            FOR2(k,l){
+                total_rhs.phi += gamma_UU[i][k]*gamma_UU[j][l]*(2*vars.lapse*dVddA/gnn*vars.phi*vars.Avec[i]*vars.Avec[j]*ExCurv[k][l] - 2*vars.lapse*dVddA/gnn*vars.Avec[i]*vars.Avec[j]*DA[k][l]);
+            }
+        }
+    }
+    
+    
+    //################################################################################
+    DEBUG_HEADER;
+    DEBUG_OUT3(V, dVdA, dVddA);
+    DEBUG_OUT(vars.lapse);
+    DEBUG_OUT(vars.K);
+    DEBUG_OUT(total_rhs.Z);
+    DEBUG_OUT3(total_rhs.Avec[0], total_rhs.Avec[1], total_rhs.Avec[2]);
+    DEBUG_OUT3(total_rhs.Evec[0], total_rhs.Evec[1], total_rhs.Evec[2]);
+    DEBUG_OUT2(vars.phi, vars.Z);
+    DEBUG_OUT3(vars.Avec[1], vars.Avec[2], vars.Avec[3]);
+    DEBUG_OUT3(vars.Evec[1], vars.Evec[2], vars.Evec[3]);
+    DEBUG_END;
+    //################################################################################
 
 
 }

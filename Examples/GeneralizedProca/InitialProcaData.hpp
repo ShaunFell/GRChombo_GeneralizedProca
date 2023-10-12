@@ -102,11 +102,19 @@ public:
         mattervars.Avec[0] = m_params.amplitude*pow(conformalFact, 3./2.)*exp(-radius/r0);
         mattervars.Avec[1] = 0.;
         mattervars.Avec[2] = 0.;
-        mattervars.phi = 0;
+        mattervars.phi = 0.;
+        mattervars.Z = 0.;
         FOR1(i){
             mattervars.Evec[i] = 0.;
-        };
- 
+        }
+    
+        //################################################################################
+        DEBUG_HEADER;
+        DEBUG_OUT2(mattervars.Z, mattervars.phi);
+        DEBUG_OUT3(mattervars.Avec[0], mattervars.Avec[2], mattervars.Avec[1]);
+        DEBUG_OUT3(mattervars.Evec[0], mattervars.Evec[2], mattervars.Evec[1]);
+        DEBUG_END;
+        //################################################################################
 
         current_cell.store_vars(mattervars);
 
