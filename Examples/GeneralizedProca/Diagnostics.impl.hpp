@@ -75,6 +75,49 @@ void ProcaConstraint<potential_t>::compute(Cell<data_t> current_cell) const
 
 
 
+template <class potential_t>
+template<class data_t>
+void EffectiveMetric<potential_t>::compute(Cell<data_t> current_cell) const
+{
+    //load variables from Chombo grid
+    const auto vars = current_cell.template load_vars<Vars>();
+    const auto varsd1 = m_deriv.template diff1<Vars>(current_cell);
+
+    //compute contravariant conformal spatial metric
+    const Tensor<2, data_t> h_UU { TensorAlgebra::compute_inverse_sym(vars.h) };
+    
+    //compute contravariant and covariant physical spatial metric 
+    Tensor<2, data_t> gamma_LL;
+    FOR2(i,j){
+        gamma_LL[i][j] = vars.h[i][j]/vars.chi;
+    };
+    const Tensor<2,data_t> gamma_UU { TensorAlgebra::compute_inverse_sym(gamma_LL) };
+    
+    //the return value
+    data_t gnn;
+
+    //compute potential
+    data_t V { 0. };
+    data_t dVdA { 0. };
+    data_t dVddA { 0. };
+    m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
+
+    gnn = dVdA - 2*dVddA*vars.phi*vars.phi;
+
+#ifdef EQUATION_DEBUG_MODE
+    DEBUG_OUT(dVdA);
+    DEBUG_OUT(dVddA);
+    DEBUG_OUT(vars.phi);
+    DEBUG_OUT(gnn);
+#endif //EQUATION_DEBUG_MODE
+
+    current_cell.store_vars(gnn, c_gnn);
+
+
+
+}
+
+
 
 
 

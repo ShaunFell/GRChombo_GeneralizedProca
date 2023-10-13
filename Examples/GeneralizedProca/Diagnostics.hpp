@@ -41,6 +41,31 @@ class ProcaConstraint
         void compute(Cell<data_t> current_cell) const;
 };
 
+template <class potential_t>
+class EffectiveMetric
+{
+    protected:
+
+        double m_vector_mass;
+        double m_vector_damping;
+        const potential_t m_potential;
+        const FourthOrderDerivatives m_deriv;
+
+        //extract all grid variables
+        template <class data_t>
+        using Vars = typename MatterCCZ4<ProcaField<potential_t>>::template Vars<data_t>;
+
+    public:
+        EffectiveMetric(double dx, double a_vector_mass, double a_vector_damping, const potential_t a_potential):
+            m_deriv(dx), m_vector_mass{a_vector_mass}, m_vector_damping{a_vector_damping}, m_potential{a_potential}
+        {
+        };
+
+        template <class data_t>
+        void compute(Cell<data_t> current_cell) const;
+
+};
+
 
 
 class ProcaSquared

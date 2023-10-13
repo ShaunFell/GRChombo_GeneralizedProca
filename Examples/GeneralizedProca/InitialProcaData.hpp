@@ -109,11 +109,13 @@ public:
         }
     
         //################################################################################
+#ifdef EQUATION_DEBUG_MODE
         DEBUG_HEADER;
         DEBUG_OUT2(mattervars.Z, mattervars.phi);
         DEBUG_OUT3(mattervars.Avec[0], mattervars.Avec[2], mattervars.Avec[1]);
         DEBUG_OUT3(mattervars.Evec[0], mattervars.Evec[2], mattervars.Evec[1]);
         DEBUG_END;
+#endif //EQUATION_DEBUG_MODE
         //################################################################################
 
         current_cell.store_vars(mattervars);

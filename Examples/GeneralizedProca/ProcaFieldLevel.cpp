@@ -74,14 +74,16 @@ void ProcaFieldLevel::prePlotLevel()
     ProcaPotential potential(m_p.potential_params);
     ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
     ProcaConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
+    EffectiveMetric<ProcaPotential> proca_eff_met(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
     ProcaSquared Asquared(m_dx);
 
-    //compute constraints on each cell of current level
+    //compute diagnostics on each cell of current level
     BoxLoops::loop(
         make_compute_pack(
             MatterConstraints<ProcaFieldWithPotential>(proca_field, m_dx, m_p.G_Newton, c_Ham, Interval(c_Mom1, c_Mom3)),
             Asquared,
-            proca_constraint
+            proca_constraint,
+            proca_eff_met
             ),
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );

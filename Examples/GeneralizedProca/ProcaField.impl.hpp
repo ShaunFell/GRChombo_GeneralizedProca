@@ -216,6 +216,7 @@ void ProcaField<potential_t>::add_matter_rhs(
     
     
     //################################################################################
+#ifdef EQUATION_DEBUG_MODE
     DEBUG_HEADER;
     DEBUG_OUT3(V, dVdA, dVddA);
     DEBUG_OUT(vars.lapse);
@@ -227,6 +228,7 @@ void ProcaField<potential_t>::add_matter_rhs(
     DEBUG_OUT3(vars.Avec[1], vars.Avec[2], vars.Avec[3]);
     DEBUG_OUT3(vars.Evec[1], vars.Evec[2], vars.Evec[3]);
     DEBUG_END;
+#endif //EQUATION_DEBUG_MODE
     //################################################################################
 
 
