@@ -28,6 +28,7 @@ class SimulationParameters : public SimulationParametersBase
     /// Read parameters from the parameter file
     void read_params(GRParmParse &pp)
     {
+
         // Initial Kerr data
         pp.load("kerr_mass", kerr_params.mass);
         pp.load("kerr_spin", kerr_params.spin);

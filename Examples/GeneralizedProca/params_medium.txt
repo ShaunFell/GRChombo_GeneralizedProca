@@ -1,0 +1,84 @@
+verbosity = 3
+output_path = "/mnt/DataDrive/Data_Store/ProblemsWithProca/GRChombo/" # Main path for all files. Must exist!
+chk_prefix = GeneralizedProca_
+plot_prefix = GeneralizedProcap_
+#restart_file=GeneralizedProcap_000009.3d.hdf5
+
+checkpoint_interval = 1
+plot_interval = 1
+num_plot_vars = 6
+plot_vars = chi phi Ham Gauss Asquared gnn
+
+hdf5_subpath = "medium_hdf5"
+pout_subpath = "medium_pout"
+data_subpath = "medium_data"
+
+print_progress_only_to_rank_0 = 1
+
+G_Newton = 1
+
+#Kerr parameters
+kerr_mass = 1.0
+kerr_spin = 0.5
+kerr_center = 16 16 16 # defauts to center
+kerr_spindir = 0 0 1 #along z-axis
+
+proca_damping = 1
+
+proca_mass = 1
+proca_self_interaction = 0.
+
+initial_proca_amplitude = 0.1
+initial_proca_width = 8
+
+N_full = 16
+L_full = 32
+
+max_level = 1 # There are (max_level+1) grids, so min is zero
+
+regrid_interval = 1
+regrid_thresholds = 0.05
+
+#regrid_interval   =  10
+#regrid_thresholds = 0.05
+
+max_box_size = 16
+min_box_size = 16
+
+tag_buffer_size = 0 # fixed grid
+
+center = 16.0 16.0 16.0
+
+isPeriodic = 0 0 0
+hi_boundary = 1 1 1
+lo_boundary = 1 1 1
+
+
+num_nonzero_asymptotic_vars = 5
+nonzero_asymptotic_vars = chi h11 h22 h33 lapse
+nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
+
+
+dt_multiplier = 0.25
+stop_time = 20.0
+
+max_spatial_derivative_order = 4 # can be 4 or 6
+
+nan_check = 1
+
+lapse_advec_coeff = 1.0
+lapse_coeff = 2.0
+lapse_power = 1.0
+
+shift_advec_coeff = 0.0 # Usually no advection for beta
+shift_Gamma_coeff = 0.75
+eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
+
+formulation = 0 # 1 for BSSN, 0 for CCZ4
+kappa1 = 1.
+kappa2 = 0.
+kappa3 = 1.
+covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
+
+sigma = 0.3
+

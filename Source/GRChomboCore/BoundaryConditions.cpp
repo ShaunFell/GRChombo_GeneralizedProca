@@ -16,8 +16,12 @@
 #include <numeric>
 #include <string>
 
-// Chombo namespace
+// Chombo namespace 
 #include "UsingNamespace.H"
+
+//debugging
+#include "DebuggingTools.hpp"
+
 
 BoundaryConditions::params_t::params_t()
 {
@@ -914,6 +918,18 @@ void BoundaryConditions::interp_boundaries(GRLevelData &a_fine_state,
                     IntVect local_boundary_offset = IntVect::Zero;
                     FOR(idir2)
                     {
+//########################################################
+#ifdef EQUATION_DEBUG_MODE
+                        DEBUG_HEADER;
+                        DEBUG_OUT(idir);
+                        DEBUG_OUT(idir2);
+                        DEBUG_OUT(hi_local_offset);
+                        DEBUG_OUT(hi_local_offset[idir2] );
+                        DEBUG_OUT(lo_local_offset);
+                        DEBUG_OUT(lo_local_offset[idir2]);
+                        DEBUG_END;
+#endif //EQUATION_DEBUG_MODE
+//########################################################
                         if (idir2 == idir)
                         {
                             local_boundary_offset[idir2] =
@@ -941,6 +957,7 @@ void BoundaryConditions::interp_boundaries(GRLevelData &a_fine_state,
                         {
                             MayDay::Error(
                                 "BoundaryConditions::define bad boxes");
+
                         }
                     }
 
