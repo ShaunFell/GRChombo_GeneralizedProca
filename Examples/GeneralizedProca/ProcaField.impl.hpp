@@ -227,6 +227,12 @@ void ProcaField<potential_t>::add_matter_rhs(
     DEBUG_OUT2(vars.phi, vars.Z);
     DEBUG_OUT3(vars.Avec[1], vars.Avec[2], vars.Avec[3]);
     DEBUG_OUT3(vars.Evec[1], vars.Evec[2], vars.Evec[3]);
+    FOR2(i,j){
+        DEBUG_OUT(d1.Evec[i][j]);
+        FOR1(k){
+            DEBUG_OUT(chris_phys[i][j][k]);
+        }
+    }
     DEBUG_END;
 #endif //EQUATION_DEBUG_MODE
     //################################################################################
