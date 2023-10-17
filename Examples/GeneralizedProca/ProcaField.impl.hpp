@@ -225,8 +225,10 @@ void ProcaField<potential_t>::add_matter_rhs(
     DEBUG_OUT3(total_rhs.Avec[0], total_rhs.Avec[1], total_rhs.Avec[2]);
     DEBUG_OUT3(total_rhs.Evec[0], total_rhs.Evec[1], total_rhs.Evec[2]);
     DEBUG_OUT2(vars.phi, vars.Z);
-    DEBUG_OUT3(vars.Avec[1], vars.Avec[2], vars.Avec[3]);
-    DEBUG_OUT3(vars.Evec[1], vars.Evec[2], vars.Evec[3]);
+    DEBUG_OUT3(vars.Avec[0], vars.Avec[1], vars.Avec[2]);
+    DEBUG_OUT3(vars.Evec[0], vars.Evec[1], vars.Evec[2]);
+    DEBUG_OUT4(gamma_UU[0][0], gamma_UU[0][1], gamma_UU[0][2], gamma_UU[1][1]);
+    DEBUG_OUT2(gamma_UU[1][2], gamma_UU[2][2]);
     FOR2(i,j){
         DEBUG_OUT(d1.Evec[i][j]);
         FOR1(k){

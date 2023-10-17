@@ -54,6 +54,8 @@ class ProcaPotential{
         DEBUG_OUT(Asquared);
         DEBUG_OUT3(vars.Avec[0], vars.Avec[1], vars.Avec[2]);
         DEBUG_OUT(vars.phi);
+        DEBUG_OUT4(gamma_UU[0][0], gamma_UU[0][1], gamma_UU[0][2], gamma_UU[1][1]);
+        DEBUG_OUT2(gamma_UU[1][2], gamma_UU[2][2]);
 #endif //EQUATION_DEBUG_MODE
     //################################################################################
 
