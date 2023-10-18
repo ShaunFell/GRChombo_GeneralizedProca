@@ -13,6 +13,11 @@
 #include "Potential.hpp"
 #include "KerrBH.hpp"
 
+
+#ifdef EQUATION_DEBUG_MODE
+#include <cstdlib>
+#endif
+
 class InitialProcaData: public KerrBH
 {
 public:
@@ -91,7 +96,7 @@ public:
         const data_t rho = coords.get_radius(); //x^2 + y^2 + z^2
         const data_t rho2 = rho*rho; //r^2
 
-        const data_t radial2 = 0.5*(rho2 - kerrSpin2)  + sqrt(0.25*(rho2-kerrSpin2) + kerrSpin2*coordZ*coordZ);
+        const data_t radial2 = 0.5*(rho2 - kerrSpin2)  + sqrt(0.25*(rho2-kerrSpin2)*(rho2-kerrSpin2) + kerrSpin2*coordZ*coordZ);
         const data_t radius = sqrt(radial2);
 
         data_t alpha = kerrMass*m_paramsPotential.mass;
@@ -107,6 +112,8 @@ public:
         FOR1(i){
             mattervars.Evec[i] = 0.;
         }
+
+
     
         //################################################################################
 #ifdef EQUATION_DEBUG_MODE
@@ -114,7 +121,17 @@ public:
         DEBUG_OUT2(mattervars.Z, mattervars.phi);
         DEBUG_OUT3(mattervars.Avec[0], mattervars.Avec[2], mattervars.Avec[1]);
         DEBUG_OUT3(mattervars.Evec[0], mattervars.Evec[2], mattervars.Evec[1]);
+        DEBUG_OUT(conformalFact);
+        DEBUG_OUT3(coords.x, coords.y, coords.z);        
+        DEBUG_OUT2(kerrSpin2, 0.25*(rho2-kerrSpin2) + kerrSpin2*coordZ*coordZ );
+        DEBUG_OUT4(rho, rho2, radial2, radius);
+        DEBUG_OUT(r0);
+        DEBUG_OUT(m_params.amplitude);
         DEBUG_END;
+        if (std::isnan(mattervars.Avec[0])) {
+            pout() << "Avec[0] IS NAN!!!!!" << std::endl;
+            exit(1);
+        }
 #endif //EQUATION_DEBUG_MODE
         //################################################################################
 
