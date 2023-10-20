@@ -64,6 +64,12 @@ void ProcaFieldLevel::initialData()
     fillAllGhosts();
     BoxLoops::loop(GammaCalculator(m_dx), m_state_new, m_state_new, EXCLUDE_GHOST_CELLS);
 
+    //check for nans in initial data
+    if (m_p.nan_check){
+        BoxLoops::loop(NanCheck(), m_state_new, m_state_new,
+                        EXCLUDE_GHOST_CELLS, disable_simd());
+    }
+
 };
 
 #ifdef CH_USE_HDF5
