@@ -46,6 +46,11 @@ class SimulationParameters : public SimulationParametersBase
 
         //constants
         pp.load("G_Newton", G_Newton);
+
+        //AH finder
+#ifdef USE_AHFINDER
+        pp.load("AH_initial_guess", AH_initial_guess, 0.5*kerr_params.mass);
+#endif //USE_AHFINDER
     }
 
     void check_params()
@@ -73,6 +78,10 @@ class SimulationParameters : public SimulationParametersBase
     ProcaPotential::params_t potential_params;
     ProcaField<ProcaPotential>::params_t proca_params;
     InitialProcaData::init_params_t initialdata_params;
+
+#ifdef USE_AHFINDER
+    double AH_initial_guess;
+#endif
 };
 
 #endif /* SIMULATIONPARAMETERS_HPP_ */

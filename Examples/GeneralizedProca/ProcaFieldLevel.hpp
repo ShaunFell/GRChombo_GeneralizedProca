@@ -3,6 +3,7 @@
 
 #include "DefaultLevelFactory.hpp"
 #include "GRAMRLevel.hpp"
+#include "BHAMR.hpp"
 #include "Potential.hpp"
 #include "ProcaField.hpp"
 
@@ -13,6 +14,8 @@ class ProcaFieldLevel : public GRAMRLevel
     friend class DefaultLevelFactory<ProcaFieldLevel>;
     //inherit constructors from GRAMRLevel;
     using GRAMRLevel::GRAMRLevel;
+
+    BHAMR &m_bh_amr = dynamic_cast<BHAMR &>(m_gr_amr);
 
     //typedef the scalar field class;
     typedef ProcaField<ProcaPotential> ProcaFieldWithPotential;
@@ -36,6 +39,8 @@ class ProcaFieldLevel : public GRAMRLevel
     virtual void computeTaggingCriterion(
         FArrayBox &tagging_criterion, const FArrayBox &current_state,
         const FArrayBox &current_state_diagnostics) override;
+
+    virtual void specificPostTimeStep() override;
     
 };
 
