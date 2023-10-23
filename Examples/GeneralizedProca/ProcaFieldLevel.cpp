@@ -28,6 +28,7 @@
 #include "ProcaField.hpp"
 #include "SetValue.hpp"
 #include "Diagnostics.hpp"
+#include "ExcisionProca.hpp"
 
 
 //do things at end of advance step, after RK4 calculation
