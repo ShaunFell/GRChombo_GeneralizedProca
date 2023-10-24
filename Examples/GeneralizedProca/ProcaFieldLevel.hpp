@@ -2,6 +2,7 @@
 #define PROCAFIELDLEVEL_H_INCLUDED
 
 #include "DefaultLevelFactory.hpp"
+#include "AHInterpolation.hpp"
 #include "GRAMRLevel.hpp"
 #include "BHAMR.hpp"
 #include "Potential.hpp"
@@ -14,6 +15,9 @@ class ProcaFieldLevel : public GRAMRLevel
     friend class DefaultLevelFactory<ProcaFieldLevel>;
     //inherit constructors from GRAMRLevel;
     using GRAMRLevel::GRAMRLevel;
+
+    template <class SurfaceGeometry, class ApparentHorizon>
+    using AHInterpolation = AHInterpolation_t<SurfaceGeometry, ApparentHorizon>;
 
     BHAMR &m_bh_amr = dynamic_cast<BHAMR &>(m_gr_amr);
 

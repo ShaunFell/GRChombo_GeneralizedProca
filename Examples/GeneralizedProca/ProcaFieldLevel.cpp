@@ -78,6 +78,17 @@ void ProcaFieldLevel::initialData()
         Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
     );
+
+    if (m_p.AH_activate && m_level == m_p.AH_params.level_to_run)
+    {
+        m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);
+    
+
+        double num_AH_points { m_bh_amr.m_ah_finder.get(0).m_params.num_points_u * m_bh_amr.m_ah_finder.get(0).m_params.num_points_v };
+        AHInterpolation AH_Interp { m_bh_amr.m_ah_finder.get(0).get_ah_interp() };
+        ExcisionProcaEvolution<ProcaField, AHInterpolation>(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97);
+    }
+    
 #endif //USE_AHFINDER
 
 };
