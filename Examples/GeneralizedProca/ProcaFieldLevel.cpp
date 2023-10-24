@@ -6,7 +6,6 @@
 #include "ComputePack.hpp"
 #include "BoxLoops.hpp"
 #include "NanCheck.hpp"
-#include "NewConstraints.hpp"
 #include "PositiveChiAndAlpha.hpp"
 #include "SixthOrderDerivatives.hpp"
 #include "TraceARemoval.hpp"
@@ -28,7 +27,6 @@
 #include "ProcaField.hpp"
 #include "SetValue.hpp"
 #include "Diagnostics.hpp"
-#include "ExcisionProca.hpp"
 
 
 //do things at end of advance step, after RK4 calculation
@@ -72,14 +70,6 @@ void ProcaFieldLevel::initialData()
                         EXCLUDE_GHOST_CELLS, disable_simd());
     }
 
-#ifdef USE_AHFINDER
-    //apparently this is needed for the AHFinder
-    BoxLoops::loop(
-        Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
-        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
-    );
-#endif //USE_AHFINDER
-
 };
 
 #ifdef CH_USE_HDF5
@@ -103,19 +93,6 @@ void ProcaFieldLevel::prePlotLevel()
             ),
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
-
-#ifdef USE_AHFINDER
-    //already calculated in specific PostTimeStep
-    if(m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time)){
-        return;
-    }
-#endif //USE_AHFINDER
-
-    fillAllGhosts();
-    BoxLoops::loop(
-        Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
-        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
-    );
 };
 #endif //CH_USE_HDF5
 
@@ -153,6 +130,7 @@ void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &
 //things to do before tagging cells (e.g. filling ghosts)
 void ProcaFieldLevel::preTagCells()
 {
+
 };
 
 //tagging criterion for AMR
@@ -166,21 +144,3 @@ void ProcaFieldLevel::computeTaggingCriterion(
         current_state, tagging_criterion
     );
 };
-
-void ProcaFieldLevel::specificPostTimeStep()
-{
-    CH_TIME("ProcaFieldLevel::specificPostTimeStep");
-#ifdef USE_AHFINDER
-    if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time))
-    {
-        fillAllGhosts();
-        BoxLoops::loop(Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
-                       m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
-    }
-    if (m_p.AH_activate && m_level == m_p.AH_params.level_to_run)
-    {
-        m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);
-    }
-#endif //USE_AHFINDER
-
-}
