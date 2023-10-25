@@ -33,11 +33,13 @@ class ExcisionProcaEvolution
         //constructor
         ExcisionProcaEvolution(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, AHinterp_t& a_ah_interp, const double a_num_AH_points, double a_excision_width=1.0): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_width}, m_ah_interp{a_ah_interp}, m_num_AH_points{a_num_AH_points}
         {
+            pout() << "Num AH points: " << m_num_AH_points <<endl;
             for (int i{0}; i < m_num_AH_points; ++i){
                 m_AH_coords.push_back(
                     m_ah_interp.get_cartesian_coords(i)
                 );
             };
+            pout() << "Points extracted" << endl;
         };
 
         void compute(const Cell<double> current_cell) const
@@ -48,13 +50,14 @@ class ExcisionProcaEvolution
             double min_distance;
             Tensor<1,double> closest_AH_point;
 
+            pout() << "Finding closest AH point"<<endl;
             for (int i{0}; i < m_num_AH_points; ++i)
             {
                 distance_to_AH_points.push_back(
                     sqrt(
-                        (m_AH_coords[i][0] - coords.x)*(m_AH_coords[i][0] - coords.x) +
-                        (m_AH_coords[i][1] - coords.y)*(m_AH_coords[i][1] - coords.y) +
-                        (m_AH_coords[i][2] - coords.z)*(m_AH_coords[i][2] - coords.z)
+                        (m_AH_coords[i][0] + m_center[0] - coords.x)*(m_AH_coords[i][0] + m_center[0] - coords.x) +
+                        (m_AH_coords[i][1] + m_center[1]  - coords.y)*(m_AH_coords[i][1] + m_center[1]  - coords.y) +
+                        (m_AH_coords[i][2] + m_center[2]  - coords.z)*(m_AH_coords[i][2] + m_center[2]  - coords.z)
                     )
                 );
                 if ( *min_element(distance_to_AH_points.begin(), distance_to_AH_points.end()) == distance_to_AH_points.back())
@@ -63,22 +66,29 @@ class ExcisionProcaEvolution
                     closest_AH_point = m_AH_coords[i];
                 }
             }
+            pout() << "Found point. Determining norms"<<endl;
             double AH_coord_BH_Centered_Norm { 
                                                 sqrt(
-                                                    closest_AH_point[0] - m_center[0] +
-                                                    closest_AH_point[1] - m_center[1] +
-                                                    closest_AH_point[2] - m_center[2]
+                                                    closest_AH_point[0]*closest_AH_point[0] +
+                                                    closest_AH_point[1]*closest_AH_point[1] +
+                                                    closest_AH_point[2]*closest_AH_point[2]
                                                 )
                                                 };
             double cell_BH_centered_Norm {
                                             sqrt(
-                                                coords.x - m_center[0] +
-                                                coords.y - m_center[1] +
-                                                coords.z - m_center[2]
+                                                (coords.x - m_center[0])*(coords.x - m_center[0]) +
+                                                (coords.y - m_center[1])*( coords.y - m_center[1]) +
+                                                (coords.z - m_center[2])*(coords.z - m_center[2])
                                             )
                                             };
+            pout() << "AH_coord_BH_Centered_Norm: " << AH_coord_BH_Centered_Norm << endl;
+            pout() << "cell_BH_centered_Norm: " << cell_BH_centered_Norm << endl;
+
             bool cell_Inside_Horizon { cell_BH_centered_Norm <= AH_coord_BH_Centered_Norm};
             bool cell_Inside_Buffered_Horizon { cell_BH_centered_Norm <= m_excision_width * AH_coord_BH_Centered_Norm};
+            pout() << "cell_Inside_Horizon" << cell_Inside_Horizon <<endl;
+            pout() << "cell_Inside_Buffered_Horizon" << cell_Inside_Buffered_Horizon <<endl;
+            pout() << "Perform Excision"<<endl;
 
             if (cell_Inside_Horizon)
             {

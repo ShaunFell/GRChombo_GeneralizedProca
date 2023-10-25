@@ -1028,10 +1028,8 @@ void GRAMRLevel::fillAllGhosts(const VariableType var_type,
 
 void GRAMRLevel::fillAllEvolutionGhosts(const Interval &a_comps)
 {
-    CH_TIME("GRAMRLevel::fillAllEvolutionGhosts()");
     if (m_verbosity)
-        pout() << "GRAMRLevel::fillAllEvolutionGhosts" << endl;
-
+        pout() << "GRAMRLevel::fillAllEvolutionGhosts"<<endl;
     // If there is a coarser level then interpolate undefined ghost cells
     if (m_coarser_level_ptr != nullptr)
     {
@@ -1044,7 +1042,6 @@ void GRAMRLevel::fillAllEvolutionGhosts(const Interval &a_comps)
 
 void GRAMRLevel::fillAllDiagnosticsGhosts(const Interval &a_comps)
 {
-    CH_TIME("GRAMRLevel::fillAllDiagnosticsGhosts");
     if (m_verbosity)
         pout() << "GRAMRLevel::fillAllDiagnosticsGhosts" << endl;
 

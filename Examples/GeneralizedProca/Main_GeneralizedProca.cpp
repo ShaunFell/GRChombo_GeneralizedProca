@@ -15,6 +15,7 @@
 #include "GRParmParse.hpp"
 #include "SetupFunctions.hpp"
 #include "SimulationParameters.hpp"
+#include "MultiLevelTask.hpp"
 
 // Problem specific includes:
 #include "ProcaFieldLevel.hpp"
@@ -37,19 +38,23 @@ int runGRChombo(int argc, char *argv[])
     // (To simulate a different problem, define a new child of AMRLevel
     // and an associated LevelFactory)
     BHAMR gr_amr;
+    pout() << "Initializing proca field level"<<endl;
     DefaultLevelFactory<ProcaFieldLevel> proca_field_level_fact(gr_amr, sim_params);
+    pout() << "Setting AMR object"<<endl;
     setupAMRObject(gr_amr, proca_field_level_fact);
 
     // set up interpolator
+    pout() << "Setting interpolator"<<endl;
     AMRInterpolator<Lagrange<4>> interpolator(
             gr_amr, sim_params.origin, sim_params.dx, sim_params.boundary_params,
             sim_params.verbosity);
     gr_amr.set_interpolator(&interpolator);
 
-
+    pout() << "Main Code for AH finder"<<endl;
 #ifdef USE_AHFINDER //Chombo make flags
     if (sim_params.AH_activate)
     {
+        pout() << "Defining surface geometry"<<endl;
         AHSurfaceGeometry sph(sim_params.kerr_params.center);
 
 #ifdef USE_CHI_CONTOURS //located in UserVariables
@@ -58,7 +63,8 @@ int runGRChombo(int argc, char *argv[])
         sim_params.AH_params.stats_prefix = "stats_chi_" + str_chi + "_";
         sim_params.AH_params.coords_prefix = "coords_chi_" + str_chi + "_";
         gr_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
-#else //USE_CHI_CONTOURS
+#else 
+        pout() << "adding ah horizon"<<endl;
         gr_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
 #endif //USE_CHI_CONTOURS
     }
@@ -66,10 +72,24 @@ int runGRChombo(int argc, char *argv[])
 
 
 
+
+
     using Clock = std::chrono::steady_clock;
     using Minutes = std::chrono::duration<double, std::ratio<60, 1>>;
 
     std::chrono::time_point<Clock> start_time = Clock::now();
+
+    //Add scheduler to call specificPostTimeStep on every AMRLevel at t=0 (See Examples/BinaryBH/Main_BinaryBH.cpp::98)
+    //The purpose is to calculate the Apparent horizon solver and excision the variables inside the BH.
+    auto task = [](GRAMRLevel *level)   
+    {
+        if (level->time() == 0.)
+            level->specificPostTimeStep();
+    };
+    // call 'now' really now
+    MultiLevelTaskPtr<> call_task(task);
+    call_task.execute(gr_amr);
+
 
     //go go go!!! Run the simulation
     gr_amr.run(sim_params.stop_time, sim_params.max_steps);

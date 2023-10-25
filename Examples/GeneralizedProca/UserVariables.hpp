@@ -49,7 +49,7 @@ static const std::array<std::string, NUM_VARS> variable_names = ArrayTools::conc
 
 
 //uncomment to look for chi instead of expansion
-// #define USE_CHI_CONTOURS
+//#define USE_CHI_CONTOURS
 
 #ifdef USE_CHI_CONTOURS
 #include "AHFunctions.hpp"
