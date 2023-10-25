@@ -9,9 +9,10 @@
 #include "UserVariables.hpp" //This files needs NUM_VARS - total number of components
 #include "VarsTools.hpp"
 #include "AHInterpolation.hpp"
+#include <algorithm>
 
 
-template <class matter_t, AHinterp_t> 
+template <class matter_t, class AHinterp_t> 
 class ExcisionProcaEvolution
 {
     // Use matter_t class
@@ -32,9 +33,9 @@ class ExcisionProcaEvolution
         //constructor
         ExcisionProcaEvolution(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, AHinterp_t& a_ah_interp, const double a_num_AH_points, double a_excision_width=1.0): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_width}, m_ah_interp{a_ah_interp}, m_num_AH_points{a_num_AH_points}
         {
-            for (int i{0}; i < m_bh_amr.m_ah_finder.get(0).m_params.num_points_u * m_bh_amr.m_ah_finder.get(0).m_params.num_points_v; ++i){
+            for (int i{0}; i < m_num_AH_points; ++i){
                 m_AH_coords.push_back(
-                    m_bh_amr.m_ah_finder.get(0).get_ah_interp().get_cartesian_coords(i);
+                    m_ah_interp.get_cartesian_coords(i)
                 );
             };
         };
@@ -56,7 +57,7 @@ class ExcisionProcaEvolution
                         (m_AH_coords[i][2] - coords.z)*(m_AH_coords[i][2] - coords.z)
                     )
                 );
-                if (distance_to_AH_points.min() == distance_to_AH_points.back())
+                if ( *min_element(distance_to_AH_points.begin(), distance_to_AH_points.end()) == distance_to_AH_points.back())
                 {
                     min_distance = distance_to_AH_points.back();
                     closest_AH_point = m_AH_coords[i];

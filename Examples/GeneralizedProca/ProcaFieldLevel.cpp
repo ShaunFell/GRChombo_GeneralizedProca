@@ -84,9 +84,9 @@ void ProcaFieldLevel::initialData()
         m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);
     
 
-        double num_AH_points { m_bh_amr.m_ah_finder.get(0).m_params.num_points_u * m_bh_amr.m_ah_finder.get(0).m_params.num_points_v };
-        AHInterpolation AH_Interp { m_bh_amr.m_ah_finder.get(0).get_ah_interp() };
-        ExcisionProcaEvolution<ProcaField, AHInterpolation>(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97);
+        double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
+        auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
+        ExcisionProcaEvolution<ProcaFieldWithPotential, decltype(AH_Interp)>(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97);
     }
     
 #endif //USE_AHFINDER
