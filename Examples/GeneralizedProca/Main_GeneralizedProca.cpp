@@ -66,7 +66,6 @@ int runGRChombo(int argc, char *argv[])
 
 
 
-
     using Clock = std::chrono::steady_clock;
     using Minutes = std::chrono::duration<double, std::ratio<60, 1>>;
 

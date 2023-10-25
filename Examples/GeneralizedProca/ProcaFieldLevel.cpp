@@ -55,6 +55,8 @@ void ProcaFieldLevel::initialData()
         pout()<<"ProcaFieldLevel::initialData " << m_level << endl;
     }
 
+    pout()<<"Initial Data\n";
+
     BoxLoops::loop(
         make_compute_pack(
                         SetValue(0.), 
@@ -62,18 +64,23 @@ void ProcaFieldLevel::initialData()
                         InitialProcaData(m_p.initialdata_params, m_p.potential_params, m_p.kerr_params, m_dx)
                         ),
         m_state_new, m_state_new, INCLUDE_GHOST_CELLS);
-
+    pout()<<"Filling ghost cells\n";
     fillAllGhosts();
+    pout()<<"Gamma Calculator\n";
     BoxLoops::loop(GammaCalculator(m_dx), m_state_new, m_state_new, EXCLUDE_GHOST_CELLS);
 
+    pout()<<"Nan check\n";
     //check for nans in initial data
     if (m_p.nan_check){
         BoxLoops::loop(NanCheck(), m_state_new, m_state_new,
                         EXCLUDE_GHOST_CELLS, disable_simd());
     }
 
+    pout() << "Initial data generated\n";
+
 #ifdef USE_AHFINDER
     //apparently this is needed for the AHFinder
+    pout() << "Looping contraints\n";
     BoxLoops::loop(
         Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
@@ -81,9 +88,10 @@ void ProcaFieldLevel::initialData()
 
     if (m_p.AH_activate && m_level == m_p.AH_params.level_to_run)
     {
+        pout() << "Solving AH\n";
         m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);
     
-
+        pout() << "Excising AH\n";
         double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
         auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
         ExcisionProcaEvolution<ProcaFieldWithPotential, decltype(AH_Interp)>(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97);
