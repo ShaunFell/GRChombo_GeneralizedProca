@@ -86,8 +86,8 @@ class ExcisionProcaEvolution
 
             bool cell_Inside_Horizon { cell_BH_centered_Norm <= AH_coord_BH_Centered_Norm};
             bool cell_Inside_Buffered_Horizon { cell_BH_centered_Norm <= m_excision_width * AH_coord_BH_Centered_Norm};
-            pout() << "cell_Inside_Horizon" << cell_Inside_Horizon <<endl;
-            pout() << "cell_Inside_Buffered_Horizon" << cell_Inside_Buffered_Horizon <<endl;
+            pout() << "cell_Inside_Horizon " << cell_Inside_Horizon <<endl;
+            pout() << "cell_Inside_Buffered_Horizon " << cell_Inside_Buffered_Horizon <<endl;
             pout() << "Perform Excision"<<endl;
 
             if (cell_Inside_Horizon)

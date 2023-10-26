@@ -1,6 +1,7 @@
 #ifndef INITIALPROCADATA_H_INCLUDED
 #define INITIALPROCADATA_H_INCLUDED
 
+#include "simd.hpp"
 #include "Cell.hpp"
 #include "Coordinates.hpp"
 #include "CoordinateTransformations.hpp"
@@ -12,6 +13,7 @@
 #include "simd.hpp"
 #include "Potential.hpp"
 #include "KerrBH.hpp"
+
 
 
 #ifdef EQUATION_DEBUG_MODE
@@ -92,6 +94,7 @@ public:
         const data_t kerrMass = m_paramsKerr.mass;
         const data_t kerrSpin = m_paramsKerr.spin;
         const data_t kerrSpin2 = kerrSpin*kerrSpin;
+        const data_t outerHorizon = kerrMass + sqrt(kerrMass*kerrMass-kerrSpin2);
         const data_t coordZ = coords.z;
         const data_t rho = coords.get_radius(); //x^2 + y^2 + z^2
         const data_t rho2 = rho*rho; //r^2
@@ -102,9 +105,17 @@ public:
         data_t alpha = kerrMass*m_paramsPotential.mass;
         data_t r0 = 1.0/(m_paramsPotential.mass*alpha); //peak of boson condensate
 
+        data_t kerrSchildRelation { (coords.x*coords.x + coords.y*coords.y)/(outerHorizon*outerHorizon + kerrSpin2) + coords.z*coords.z/(outerHorizon*outerHorizon) };
         
-        
-        mattervars.Avec[0] = m_params.amplitude*pow(conformalFact, 3./2.)*exp(-radius/r0);
+        data_t unity { 1 }; //allow compatiblitiy with simd methods
+
+        //anything inside horizon, according to kerr-Schild radial 'coordinate' definition, is zero initialized. 
+        if (simd_compare_lt(kerrSchildRelation, unity)){
+            mattervars.Avec[0] = 0;
+        } else {
+            mattervars.Avec[0] = m_params.amplitude*pow(conformalFact, 3./2.)*exp(-radius/r0);
+        };
+
         mattervars.Avec[1] = 0.;
         mattervars.Avec[2] = 0.;
         mattervars.phi = 0.;
