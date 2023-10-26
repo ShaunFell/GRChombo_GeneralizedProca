@@ -61,34 +61,13 @@ public:
         //location of cell
         Coordinates<data_t> coords(current_cell, m_dx, m_paramsKerr.center);
         
+        //load variables from already calculated kerr black hole (See ProcaFieldLevel.cpp::59)
+        const auto vars = current_cell.template load_vars<Vars>();
         
         //flush all variables on cell
         MatterVars<data_t> mattervars;
         VarsTools::assign(mattervars,0.);
-
-
-        //compute Kerr metric components
-        Tensor<2,data_t> spherical_g;
-        Tensor<2,data_t> spherical_K;
-        Tensor<1,data_t> spherical_shift;
-        Tensor<1,data_t> xyz;
-        data_t kerr_lapse;
-
-        //populate tensors and calculate rotation matrices
-        const Tensor<1, double> spin_direction { m_paramsKerr.spin_direction[0], m_paramsKerr.spin_direction[1], m_paramsKerr.spin_direction[2] };
-        static const Tensor<1,double> z_dir = {0.,0.,1.};
-        Tensor<2,double> R = CoordinateTransformations::rotation_matrix(spin_direction, z_dir); //rotation matrix from standard cartesian to spin-aligned coordinates
-        Tensor<1,data_t> coord_location {coords.x, coords.y, coords.z};
-        xyz = CoordinateTransformations::transform_vector(coord_location, R );
-
-
-        compute_kerr(spherical_g, spherical_K, spherical_shift, kerr_lapse, xyz); //compute kerr metric in spherical coords
-        Tensor<2, data_t> cartesian_h = CoordinateTransformations::spherical_to_cartesian_LL(spherical_g, xyz[0], xyz[1], xyz[2]); //transform to cartesian coords
-        Tensor<2, data_t> gamma_LL = CoordinateTransformations::transform_tensor_LL(cartesian_h, R); //rotate back to original coords
-
-        const data_t det_gamma { TensorAlgebra::compute_determinant_sym(gamma_LL) };
-        const data_t conformalFact { pow(det_gamma, -1./3.) };
-
+        
         const data_t kerrMass = m_paramsKerr.mass;
         const data_t kerrSpin = m_paramsKerr.spin;
         const data_t kerrSpin2 = kerrSpin*kerrSpin;
@@ -104,7 +83,7 @@ public:
 
         
         
-        mattervars.Avec[0] = m_params.amplitude*pow(conformalFact, 3./2.)*exp(-radius/r0);
+        mattervars.Avec[0] = m_params.amplitude*pow(vars.chi, 3./2.)*exp(-radius/r0);
         mattervars.Avec[1] = 0.;
         mattervars.Avec[2] = 0.;
         mattervars.phi = 0.;
