@@ -46,6 +46,12 @@ class SimulationParameters : public SimulationParametersBase
 
         //constants
         pp.load("G_Newton", G_Newton);
+
+        pp.load("calculate_constraint_norms", calculate_constraint_norms, false);
+
+        //extraction params
+        pp.load("inner_r", inner_r, 0.0);
+        pp.load("outer_r", outer_r, 200.0);
     }
 
     void check_params()
@@ -67,12 +73,14 @@ class SimulationParameters : public SimulationParametersBase
         }
     }
 
-    double G_Newton;
+    double G_Newton, outer_r, inner_r;
 
     KerrBH::params_t kerr_params;
     ProcaPotential::params_t potential_params;
     ProcaField<ProcaPotential>::params_t proca_params;
     InitialProcaData::init_params_t initialdata_params;
+
+    bool calculate_constraint_norms;
 };
 
 #endif /* SIMULATIONPARAMETERS_HPP_ */

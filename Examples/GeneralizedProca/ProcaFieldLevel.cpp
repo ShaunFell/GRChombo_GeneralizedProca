@@ -16,8 +16,14 @@
 //constraint calculation
 #include "NewMatterConstraints.hpp"
 
+//Weyl extraction
+#include "MatterWeyl4.hpp"
+#include "WeylExtraction.hpp"
+#include "SmallDataIO.hpp"
+
+
 //cell tagging
-#include "FixedGridsTaggingCriterion.hpp"
+#include "HamTaggingCriterion.hpp"
 
 //problem specific includes
 #include "GammaCalculator.hpp"
@@ -27,6 +33,7 @@
 #include "ProcaField.hpp"
 #include "SetValue.hpp"
 #include "Diagnostics.hpp"
+#include "ExcisionDiagnostics.hpp"
 
 
 //do things at end of advance step, after RK4 calculation
@@ -86,13 +93,25 @@ void ProcaFieldLevel::prePlotLevel()
     //compute diagnostics on each cell of current level
     BoxLoops::loop(
         make_compute_pack(
-            MatterConstraints<ProcaFieldWithPotential>(proca_field, m_dx, m_p.G_Newton, c_Ham, Interval(c_Mom1, c_Mom3)),
+            MatterConstraints<ProcaFieldWithPotential>(proca_field, 
+                                                        m_dx, m_p.G_Newton, 
+                                                        c_Ham, 
+                                                        Interval(c_Mom1, c_Mom3),
+                                                        c_Ham_abs_sum,
+                                                        Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
+                                                        ),
             Asquared,
             proca_constraint,
             proca_eff_met
             ),
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
+    
+    BoxLoops::loop(
+        ExcisionDiagnostics(m_dx, m_p.center, m_p.inner_r, m_p.outer_r),
+        m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+        disable_simd()
+    );
 };
 #endif //CH_USE_HDF5
 
@@ -130,17 +149,118 @@ void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &
 //things to do before tagging cells (e.g. filling ghosts)
 void ProcaFieldLevel::preTagCells()
 {
-
-};
-
-//tagging criterion for AMR
-void ProcaFieldLevel::computeTaggingCriterion(
-    FArrayBox &tagging_criterion, const FArrayBox &current_state,
-    const FArrayBox &current_state_diagnostics)
-{
-    //tag cells based on distance to boundary of computational domain
+    //fill ghosts and calculate hamiltonian terms
+    fillAllGhosts();
+    ProcaPotential potential(m_p.potential_params);
+    ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
     BoxLoops::loop(
-        FixedGridsTaggingCriterion(m_dx, m_level, 2.0*m_p.L, m_p.center),
-        current_state, tagging_criterion
+        MatterConstraints<ProcaFieldWithPotential>(
+            proca_field, m_dx, m_p.G_Newton, c_Ham,
+            Interval(c_Mom1, c_Mom3), c_Ham_abs_sum,
+            Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
+        ),
+        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
     );
+
 };
+
+
+//compute tagging criteria for grid
+void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
+                                             const FArrayBox &current_state,
+                                             const FArrayBox &current_state_diagnostics)
+{
+    //tag cells based on Hamiltonian constraint
+    BoxLoops::loop(
+        HamExtractionTaggingCriterion(m_dx, m_level, m_p.extraction_params, m_p.activate_extraction),
+        current_state_diagnostics, 
+        tagging_criterion
+    );
+}
+
+
+void ProcaFieldLevel::specificPostTimeStep()
+{
+    CH_TIME("ProcaFieldLevel::specificPostTimeStep");
+
+    bool first_step = (m_time == m_dt); //is this the first call of posttimestep?
+
+    if (m_p.activate_extraction == 1)
+    {
+
+        CH_TIME("ProcaFieldLevel::specificPostTimeStep Extraction");
+        int min_level = m_p.extraction_params.min_extraction_level();
+        bool calculate_weyl = at_level_timestep_multiple(min_level);
+        if (calculate_weyl)
+        {
+
+            CH_TIME("ProcaFieldLevel::specificPostTimeStep Weyl");
+            fillAllGhosts();
+            ProcaPotential potential(m_p.potential_params);
+            ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
+
+            //populate Weyl scalar values on grid
+            
+            CH_TIME("ProcaFieldLevel::specificPostTimeStep Loop");
+            BoxLoops::loop(
+                MatterWeyl4<ProcaFieldWithPotential>(
+                    proca_field,
+                    m_p.extraction_params.center, 
+                    m_dx, 
+                    m_p.formulation, 
+                    m_p.G_Newton),
+                m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
+            );
+
+            //excise within horizon
+            BoxLoops::loop(
+                ExcisionDiagnostics(m_dx, m_p.center, 
+                    0.0,m_p.extraction_params.extraction_radii[1]),
+                m_state_diagnostics, 
+                m_state_diagnostics,
+                SKIP_GHOST_CELLS,
+                disable_simd()
+            );
+
+            if (m_level == min_level)
+            {
+                CH_TIME("WeylExtraction");
+                //refresh interpolator
+                //fill ghosts manually
+                bool fill_ghosts = false;
+                m_gr_amr.m_interpolator->refresh(fill_ghosts);
+                m_gr_amr.fill_multilevel_ghosts(
+                    VariableType::diagnostic, Interval(c_Weyl4_Re, c_Weyl4_Im),
+                    min_level);
+                WeylExtraction my_extraction(m_p.extraction_params, m_dt, m_time, first_step, m_restart_time);
+                my_extraction.execute_query(m_gr_amr.m_interpolator);
+            }
+        }
+    }
+
+    if (m_p.calculate_constraint_norms)
+    {
+        fillAllGhosts();
+        BoxLoops::loop(
+            Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
+            m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
+        );
+
+        if (m_level == 0)
+        {
+            AMRReductions<VariableType::diagnostic> amr_reductions(m_gr_amr);
+            double L2_Ham = amr_reductions.norm(c_Ham);
+            double L2_Mom = amr_reductions.norm(Interval(c_Mom1, c_Mom3));
+            SmallDataIO constraint_file(m_p.data_path + "constraint_norms",
+                                        m_dt, m_time, m_restart_time, SmallDataIO::APPEND, first_step
+            );
+            constraint_file.remove_duplicate_time_data();
+            if (first_step)
+            {
+                constraint_file.write_header_line({"L^2_Ham", "L^2_Mom"});
+            }
+            constraint_file.write_time_data_line({L2_Ham, L2_Mom});
+        }
+    }
+
+}

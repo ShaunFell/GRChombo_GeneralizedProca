@@ -1,0 +1,135 @@
+# See the wiki page for an explanation of the params!
+# https://github.com/GRChombo/GRChombo/wiki/Guide-to-parameters
+
+#################################################
+# Filesystem parameters
+
+#Maximum Verbosity!!!
+verbosity = 10 
+
+# location / naming of output files
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/" # Main path for all files. Must exist!
+chk_prefix = GeneralizedProca_
+plot_prefix = GeneralizedProcap_
+
+checkpoint_interval = 1
+plot_interval = 1
+num_plot_vars = 6
+plot_vars = chi phi Ham Gauss Asquared gnn
+
+hdf5_subpath = "singlenode_g0_l0_hdf5"
+pout_subpath = "singlenode_g0_l0_pout"
+data_subpath = "singlenode_g0_l0_data"
+
+print_progress_only_to_rank_0 = 1
+
+G_Newton = 0
+
+kerr_mass = 1.0
+kerr_spin = 0.9
+kerr_center = 16 16 16 # defauts to center
+kerr_spindir = 0 0 1 #along z-axis
+
+proca_damping = 1
+
+proca_mass = 1
+proca_self_interaction = 0.
+
+initial_proca_amplitude = 0.1
+initial_proca_width = 32
+
+N_full = 32
+L_full = 32
+
+max_level = 2 # There are (max_level+1) grids, so min is zero
+
+regrid_interval   =  0 0 
+
+max_box_size = 16
+min_box_size = 16
+
+grid_buffer_size = 8
+
+isPeriodic = 0 0 0
+
+hi_boundary = 1 1 1
+lo_boundary = 1 1 1
+
+num_nonzero_asymptotic_vars = 5
+nonzero_asymptotic_vars = chi h11 h22 h33 lapse
+nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
+
+dt_multiplier = 0.25
+stop_time = 0.01
+
+max_spatial_derivative_order = 4 # can be 4 or 6
+
+nan_check = 1
+
+lapse_advec_coeff = 1.0
+lapse_coeff = 2.0
+lapse_power = 1.0
+
+shift_advec_coeff = 0.0 # Usually no advection for beta
+shift_Gamma_coeff = 0.75
+eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
+
+formulation = 0 # 1 for BSSN, 0 for CCZ4
+kappa1 = 1.
+kappa2 = 0.
+kappa3 = 1.
+covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
+
+sigma = 0.3
+
+AH_activate = 1 
+AH_num_ranks = 1
+AH_num_points_u = 49
+AH_num_points_v = 48
+AH_solve_interval = 1
+AH_print_interval = 1
+AH_track_center = false
+AH_predict_origin = false
+AH_stop_if_max_fails = 1
+AH_verbose = 1
+AH_initial_guess = 0.358
+AH_num_extra_vars = 1
+AH_extra_vars = chi
+
+
+AH_level_to_run = 0
+AH_allow_re_attempt = 1
+AH_start_time = 0.
+AH_give_up_time = -1. # -1 to never
+AH_max_fails_after_lost = 0 # -1 to never
+AH_print_geometry_data = 1
+AH_re_solve_at_restart = 0
+AH_expansion_radius_power = 1.
+AH_look_for_chi_contour = 0.2
+AH_coords_subpath = "singlenode_g0_l0_data/coords"
+AH_stats_prefix = "stats_AH"
+AH_coords_prefix = "coords_AH"
+
+activate_extraction = 1
+num_extraction_radii = 2
+extraction_radii = 50.0 100.0
+inner_r = 0.0
+outer_r = 110.0
+extraction_levels = 2 1
+num_points_phi = 24
+num_points_theta = 37
+num_modes = 8
+modes = 2 0 # l m for spherical harmonics
+        2 1
+        2 2
+        4 0
+        4 1
+        4 2
+        4 3
+        4 4
+
+integral_file_prefix = "Weyl4_mode_"
+
+write_extraction = 1
+extraction_subpath = "singlnode_g0_l0_data/extraction" # directory for 'write_extraction = 1'
+extraction_file_prefix = "Weyl4_extraction_"

@@ -33,6 +33,8 @@ class ProcaFieldLevel : public GRAMRLevel
 
     virtual void preTagCells() override; //things to do before tagging cells (e.g. filling ghosts)
 
+    virtual void specificPostTimeStep() override;
+
     virtual void computeTaggingCriterion(
         FArrayBox &tagging_criterion, const FArrayBox &current_state,
         const FArrayBox &current_state_diagnostics) override;
