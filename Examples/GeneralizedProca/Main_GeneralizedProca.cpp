@@ -11,8 +11,9 @@
 
 // Our general includes
 #include "DefaultLevelFactory.hpp"
-#include "GRAMR.hpp"
+#include "BHAMR.hpp"
 #include "GRParmParse.hpp"
+#include "MultiLevelTask.hpp"
 #include "SetupFunctions.hpp"
 #include "SimulationParameters.hpp"
 
@@ -36,22 +37,40 @@ int runGRChombo(int argc, char *argv[])
     // The line below selects the problem that is simulated
     // (To simulate a different problem, define a new child of AMRLevel
     // and an associated LevelFactory)
-    GRAMR gr_amr;
-    DefaultLevelFactory<ProcaFieldLevel> proca_field_level_fact(gr_amr, sim_params);
-    setupAMRObject(gr_amr, proca_field_level_fact);
+    BHAMR bh_amr;
+    DefaultLevelFactory<ProcaFieldLevel> proca_field_level_fact(bh_amr, sim_params);
+    setupAMRObject(bh_amr, proca_field_level_fact);
+
+    //set interpolating object
+    AMRInterpolator<Lagrange<4>> interpolator(
+        bh_amr, sim_params.origin, sim_params.dx, sim_params.boundary_params,
+        sim_params.verbosity);
+    bh_amr.set_interpolator(
+        &interpolator); // also sets puncture_tracker interpolator
 
     using Clock = std::chrono::steady_clock;
     using Minutes = std::chrono::duration<double, std::ratio<60, 1>>;
 
     std::chrono::time_point<Clock> start_time = Clock::now();
 
-    gr_amr.run(sim_params.stop_time, sim_params.max_steps);
+    //call the PostTimeStep right now!!!!
+    auto task = [](GRAMRLevel *level)
+    {
+        if (level->time() == 0.)
+            level->specificPostTimeStep();
+    };
+    // call 'now' really now
+    MultiLevelTaskPtr<> call_task(task);
+    call_task.execute(bh_amr);
+
+    //go go go !!!!!! Run simulation
+    bh_amr.run(sim_params.stop_time, sim_params.max_steps);
 
     auto now = Clock::now();
     auto duration = std::chrono::duration_cast<Minutes>(now - start_time);
     pout() << "Total simulation time (mins): " << duration.count() << ".\n";
 
-    gr_amr.conclude();
+    bh_amr.conclude();
 
     CH_TIMER_REPORT(); // Report results when running with Chombo timers.
 

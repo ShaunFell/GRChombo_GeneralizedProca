@@ -37,6 +37,9 @@ class HamExtractionTaggingCriterion
         auto Ham_abs_sum = current_cell.load_vars(c_Ham_abs_sum);
         data_t criterion = sqrt(Ham_abs_sum) * m_dx;
 
+        auto Gauss_abs_sum = current_cell.load_vars(c_gauss);
+        criterion *= abs(Gauss_abs_sum)*m_dx;
+
         //If extractin weyl data at given radius, enforce given resolution there
         if (m_activate_extraction)
         {

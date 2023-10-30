@@ -27,7 +27,7 @@ G_Newton = 0
 
 kerr_mass = 1.0
 kerr_spin = 0.9
-kerr_center = 16 16 16 # defauts to center
+kerr_center = 128 128 128 # defauts to center
 kerr_spindir = 0 0 1 #along z-axis
 
 proca_damping = 1
@@ -38,15 +38,15 @@ proca_self_interaction = 0.
 initial_proca_amplitude = 0.1
 initial_proca_width = 32
 
-N_full = 32
-L_full = 32
+N_full = 128
+L_full = 256
 
 max_level = 2 # There are (max_level+1) grids, so min is zero
 
 regrid_interval   =  0 0 
 
-max_box_size = 16
-min_box_size = 16
+max_box_size = 128
+min_box_size = 128
 
 grid_buffer_size = 8
 
@@ -60,7 +60,7 @@ nonzero_asymptotic_vars = chi h11 h22 h33 lapse
 nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
 
 dt_multiplier = 0.25
-stop_time = 0.01
+stop_time = 0.25
 
 max_spatial_derivative_order = 4 # can be 4 or 6
 
@@ -112,9 +112,9 @@ AH_coords_prefix = "coords_AH"
 
 activate_extraction = 1
 num_extraction_radii = 2
-extraction_radii = 50.0 100.0
+extraction_radii = 50.0 80.0
 inner_r = 0.0
-outer_r = 110.0
+outer_r = 85.0
 extraction_levels = 2 1
 num_points_phi = 24
 num_points_theta = 37

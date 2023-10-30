@@ -188,20 +188,18 @@ void ProcaFieldLevel::specificPostTimeStep()
     if (m_p.activate_extraction == 1)
     {
 
-        CH_TIME("ProcaFieldLevel::specificPostTimeStep Extraction");
         int min_level = m_p.extraction_params.min_extraction_level();
         bool calculate_weyl = at_level_timestep_multiple(min_level);
         if (calculate_weyl)
         {
 
-            CH_TIME("ProcaFieldLevel::specificPostTimeStep Weyl");
             fillAllGhosts();
             ProcaPotential potential(m_p.potential_params);
             ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
 
             //populate Weyl scalar values on grid
             
-            CH_TIME("ProcaFieldLevel::specificPostTimeStep Loop");
+            pout()<<"ProcaFieldLevel::specificPostTimeStep MatterWeyl4"<<endl;
             BoxLoops::loop(
                 MatterWeyl4<ProcaFieldWithPotential>(
                     proca_field,
@@ -212,6 +210,7 @@ void ProcaFieldLevel::specificPostTimeStep()
                 m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
             );
 
+            pout()<<"ProcaFieldLevel::specificPostTimeStep ExcisionDiagnostics"<<endl;
             //excise within horizon
             BoxLoops::loop(
                 ExcisionDiagnostics(m_dx, m_p.center, 
@@ -222,6 +221,7 @@ void ProcaFieldLevel::specificPostTimeStep()
                 disable_simd()
             );
 
+            pout()<<"ProcaFieldLevel::specificPostTimeStep Calculate Weyl"<<endl;
             if (m_level == min_level)
             {
                 CH_TIME("WeylExtraction");
