@@ -23,7 +23,7 @@
 
 
 //cell tagging
-#include "HamTaggingCriterion.hpp"
+#include "TaggingCriterion.hpp"
 
 //problem specific includes
 #include "GammaCalculator.hpp"
@@ -149,17 +149,37 @@ void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &
 //things to do before tagging cells (e.g. filling ghosts)
 void ProcaFieldLevel::preTagCells()
 {
-    //fill ghosts and calculate hamiltonian terms
+    //fill all ghosts
     fillAllGhosts();
+
+    //setup class instances
     ProcaPotential potential(m_p.potential_params);
     ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
+    ProcaConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
+
+    //compute Hamiltonian and Guass diagnostics on each cell of current level as these are required for tagging
     BoxLoops::loop(
-        MatterConstraints<ProcaFieldWithPotential>(
-            proca_field, m_dx, m_p.G_Newton, c_Ham,
-            Interval(c_Mom1, c_Mom3), c_Ham_abs_sum,
-            Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
-        ),
+        make_compute_pack(
+            MatterConstraints<ProcaFieldWithPotential>(proca_field, 
+                                                        m_dx, m_p.G_Newton, 
+                                                        c_Ham, 
+                                                        Interval(c_Mom1, c_Mom3),
+                                                        c_Ham_abs_sum,
+                                                        Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
+                                                        ),
+            ProcaConstraint<ProcaPotential>(m_dx, 
+                                            m_p.potential_params.mass, 
+                                            m_p.proca_params.vector_damping, 
+                                            potential)
+            ),
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
+        );
+    
+    //excise diagnostics according to parameters set in parameter file
+    BoxLoops::loop(
+        ExcisionDiagnostics(m_dx, m_p.center, m_p.inner_r, m_p.outer_r),
+        m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+        disable_simd()
     );
 
 };
