@@ -30,6 +30,9 @@ pout
 data
 datasets
 
+#Plots
+Plots
+
 # Documentation
 Doxygen/html
 

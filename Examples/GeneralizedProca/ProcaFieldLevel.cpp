@@ -190,9 +190,14 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                              const FArrayBox &current_state,
                                              const FArrayBox &current_state_diagnostics)
 {
+    pout() << "Tagging criterion on level " << m_level << endl;
     //tag cells based on Hamiltonian constraint
     BoxLoops::loop(
-        HamExtractionTaggingCriterion(m_dx, m_level, m_p.extraction_params, m_p.activate_extraction),
+        CustomTaggingCriterion(
+                                m_dx, m_level, 2.0*m_p.L, 
+                                m_p.extraction_params, 
+                                m_p.activate_extraction
+                            ),
         current_state_diagnostics, 
         tagging_criterion
     );
@@ -202,7 +207,6 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
 void ProcaFieldLevel::specificPostTimeStep()
 {
     CH_TIME("ProcaFieldLevel::specificPostTimeStep");
-
     bool first_step = (m_time == m_dt); //is this the first call of posttimestep?
 
     if (m_p.activate_extraction == 1)
