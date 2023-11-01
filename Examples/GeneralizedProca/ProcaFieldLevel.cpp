@@ -194,7 +194,7 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
     //tag cells based on Hamiltonian constraint
     BoxLoops::loop(
         CustomTaggingCriterion(
-                                m_dx, m_level, 2.0*m_p.L, 
+                                m_dx, m_level, m_p.L, 
                                 m_p.extraction_params, 
                                 m_p.activate_extraction
                             ),
@@ -223,7 +223,6 @@ void ProcaFieldLevel::specificPostTimeStep()
 
             //populate Weyl scalar values on grid
             
-            pout()<<"ProcaFieldLevel::specificPostTimeStep MatterWeyl4"<<endl;
             BoxLoops::loop(
                 MatterWeyl4<ProcaFieldWithPotential>(
                     proca_field,
@@ -234,7 +233,6 @@ void ProcaFieldLevel::specificPostTimeStep()
                 m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
             );
 
-            pout()<<"ProcaFieldLevel::specificPostTimeStep ExcisionDiagnostics"<<endl;
             //excise within horizon
             BoxLoops::loop(
                 ExcisionDiagnostics(m_dx, m_p.center, 
@@ -245,7 +243,6 @@ void ProcaFieldLevel::specificPostTimeStep()
                 disable_simd()
             );
 
-            pout()<<"ProcaFieldLevel::specificPostTimeStep Calculate Weyl"<<endl;
             if (m_level == min_level)
             {
                 CH_TIME("WeylExtraction");

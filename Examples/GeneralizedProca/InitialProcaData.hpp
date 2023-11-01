@@ -33,7 +33,6 @@ public:
     struct init_params_t
     {
         double amplitude;
-        double width;
     };
 
     using PotentialParams = ProcaPotential::params_t;
@@ -91,28 +90,6 @@ public:
         FOR1(i){
             mattervars.Evec[i] = 0.;
         }
-
-
-    
-        //################################################################################
-#ifdef EQUATION_DEBUG_MODE
-        DEBUG_HEADER;
-        DEBUG_OUT2(mattervars.Z, mattervars.phi);
-        DEBUG_OUT3(mattervars.Avec[0], mattervars.Avec[2], mattervars.Avec[1]);
-        DEBUG_OUT3(mattervars.Evec[0], mattervars.Evec[2], mattervars.Evec[1]);
-        DEBUG_OUT(conformalFact);
-        DEBUG_OUT3(coords.x, coords.y, coords.z);        
-        DEBUG_OUT2(kerrSpin2, 0.25*(rho2-kerrSpin2) + kerrSpin2*coordZ*coordZ );
-        DEBUG_OUT4(rho, rho2, radial2, radius);
-        DEBUG_OUT(r0);
-        DEBUG_OUT(m_params.amplitude);
-        DEBUG_END;
-        if (std::isnan(mattervars.Avec[0])) {
-            pout() << "Avec[0] IS NAN!!!!!" << std::endl;
-            exit(1);
-        }
-#endif //EQUATION_DEBUG_MODE
-        //################################################################################
 
         current_cell.store_vars(mattervars);
 

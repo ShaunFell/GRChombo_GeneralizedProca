@@ -41,7 +41,6 @@ class SimulationParameters : public SimulationParametersBase
 
         pp.load("proca_damping", proca_params.vector_damping);
 
-        pp.load("initial_proca_width", initialdata_params.width);
         pp.load("initial_proca_amplitude",initialdata_params.amplitude);
 
         //constants

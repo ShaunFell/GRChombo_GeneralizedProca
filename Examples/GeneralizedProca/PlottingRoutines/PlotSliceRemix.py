@@ -20,7 +20,7 @@ path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/prod/multiplenode_g0_l
 
 # plot details
 # select variable 
-plot_variables = ["Asquared", "gauss", "Ham",  "gnn"]
+plot_variables = ["Asquared", "Gauss", "Ham",  "gnn", "Ham_abs_sum"]
 output_directory = "./Plots/"
 # max and min values for colourbar
 set_min_max = 0 # 1 for true, 0 for false
@@ -161,12 +161,17 @@ def main():
 	print("Running Plot routines!")
 
 	for plotvar in plot_variables:
+
+		if plotvar=="Asquared":
+			continue
+
 		print ("Plotting slices for {0}...".format(plotvar))
 		make_slice_plots(plotvar, hdf5files, hdf5files_base)
 		print ("Making a movie...")
 		os.system('ffmpeg -r 5 -f image2 -s 1920x1080 -i ' + output_directory+str(plotvar) + '%04d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p ' + output_directory+"../Movies/"+str(plotvar) + '.mp4')
 		print ("I've finished!")
-		os.remove("./visitlog.py")
+	
+	os.remove("./visitlog.py")
 	exit()
 
 if __visit_script_file__ == __visit_source_file__:
