@@ -161,7 +161,7 @@ void ProcaField<potential_t>::add_matter_rhs(
     m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
 
 
-    const double c4 = m_potential.self_interaction;
+    const double c4 = m_potential.m_params.self_interaction;
 
     FOR1(i)
     {
@@ -180,6 +180,16 @@ void ProcaField<potential_t>::add_matter_rhs(
     // indices - the second index is the derivative index
     Tensor<2, data_t> diff_DA;
     FOR2(i, j) { diff_DA[i][j] = d1.Avec[j][i] - d1.Avec[i][j]; }
+
+
+    // Here we are defining often used terms
+    // DA[i][j] = D_i A_j
+    Tensor<2, data_t> DA;
+    FOR2(i, j)
+    {
+        DA[i][j] = d1.Avec[j][i];
+        FOR1(k) { DA[i][j] += -chris_phys[k][i][j] * vars.Avec[k]; }
+    }
 
 
     // Xsquared = X^/mu X_/mu
@@ -222,7 +232,7 @@ void ProcaField<potential_t>::add_matter_rhs(
     // dVdA = mu^2 ( 1 + 4 c4 A^k A_k - 12 c4 phi^2)
     // (ie the second part of the constraint, eqn 27)
     total_rhs.Z =
-        vars.lapse * (dVdA * vars.phi - m_vector_damping * vars.Z) +
+        vars.lapse * (dVdA * vars.phi - m_params.vector_damping * vars.Z) +
         advec.Z;
 
     FOR1(i)
@@ -240,6 +250,11 @@ void ProcaField<potential_t>::add_matter_rhs(
     FOR2(i,j){
         ExCurv = (1./vars.chi)*(vars.A[i][j] + 1./3.*vars.h[i][j]*vars.K);
     }
+
+    // DAScalar = D_i A^i
+    data_t DA_scalar;
+    DA_scalar = 0;
+    FOR2(i, j) { DA_scalar += DA[i][j] * gamma_UU[i][j]; }
 
     // C = 1 + 4 c4 A^k A_k - 12 c4 phi^2
     data_t C = 1.0 - 12.0 * c4 * vars.phi * vars.phi;
