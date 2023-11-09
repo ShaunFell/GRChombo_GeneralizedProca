@@ -161,7 +161,7 @@ void ProcaField<potential_t>::add_matter_rhs(
     m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
 
 
-    const double c4 = m_params.self_interaction;
+    const double c4 = m_potential.self_interaction;
 
     FOR1(i)
     {
@@ -170,7 +170,7 @@ void ProcaField<potential_t>::add_matter_rhs(
         FOR1(j)
         {
             total_rhs.Avec[i] +=
-                -vars.lapse * vars.gamma[i][j] * vars.Evec[j] +
+                -vars.lapse * gamma_LL[i][j] * vars.Evec[j] +
                 vars.Avec[j] * d1.shift[j][i];
         }
     }
@@ -212,8 +212,8 @@ void ProcaField<potential_t>::add_matter_rhs(
             {
                 total_rhs.Evec[i] += -gamma_UU[k][j] * gamma_UU[i][l] *
                                      vars.lapse *
-                                     (chris_phys.ULL[m][k][l] * diff_DA[m][j] +
-                                      chris_phys.ULL[m][k][j] * diff_DA[l][m]);
+                                     (chris_phys[m][k][l] * diff_DA[m][j] +
+                                      chris_phys[m][k][j] * diff_DA[l][m]);
             }
         }
     }
@@ -231,7 +231,7 @@ void ProcaField<potential_t>::add_matter_rhs(
         FOR1(j)
         {
             total_rhs.Z +=
-                vars.lapse * chris_phys.ULL[i][i][j] * vars.Evec[j];
+                vars.lapse * chris_phys[i][i][j] * vars.Evec[j];
         }
     }
 
