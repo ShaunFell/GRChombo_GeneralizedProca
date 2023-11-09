@@ -161,6 +161,8 @@ void ProcaField<potential_t>::add_matter_rhs(
     m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
 
 
+//Katy's evolution equations
+/*
     const double c4 = m_potential.m_params.self_interaction;
 
     FOR1(i)
@@ -291,7 +293,7 @@ void ProcaField<potential_t>::add_matter_rhs(
             }
         }
     }
-    
+    */
     
     //################################################################################
 #ifdef EQUATION_DEBUG_MODE
