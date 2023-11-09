@@ -53,7 +53,7 @@ data_t ProcaConstraint<potential_t>::constraint_equations(Cell<data_t> current_c
 
     FOR1(i)
     {
-        gauss_constraint += varsd1.Evec[i][i];
+        gauss_constraint += varsd1.Evec[i][i] + 2*dVdA*vars.phi;
 
         FOR1(j)
         {

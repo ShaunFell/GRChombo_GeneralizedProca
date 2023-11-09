@@ -25,13 +25,17 @@ class CustomTaggingCriterion
     const double m_dx;
     const double m_L;
     const spherical_extraction_params_t m_params;
+    const int m_max_level;
     const int m_level;
     const bool m_activate_extraction;
+    const double m_radius;
 
   public:
     CustomTaggingCriterion(double dx, const int a_level, const double a_L,    
                                   const spherical_extraction_params_t a_params,
-                                  const bool activate_extraction = false) : m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{activate_extraction} {};
+                                  const int a_max_level,
+                                  const bool activate_extraction = false,
+                                  const double a_radius=2) :m_max_level{a_max_level},m_radius{a_radius}, m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{activate_extraction} {};
 
     template <class data_t> void compute(Cell<data_t> current_cell) const
     {
@@ -47,6 +51,12 @@ class CustomTaggingCriterion
         const data_t max_abs_xyz = simd_max(max_abs_xy, abs(coords.z));
         auto regrid = simd_compare_lt(max_abs_xyz, m_L*ratio);
         FixedGridCriterion = simd_conditional(regrid, 100.0, FixedGridCriterion);
+
+        //Make sure horizon always covered
+        if (m_level == m_max_level-1){
+            auto regrid_bh = simd_compare_lt(max_abs_xyz, m_radius);
+            FixedGridCriterion = simd_conditional(regrid_bh, 100.0, FixedGridCriterion);
+        }
 
 
         //Extraction radius Tagging
@@ -72,6 +82,10 @@ class CustomTaggingCriterion
 
         auto Gauss_abs_sum = current_cell.load_vars(c_gauss);
         ConstraintCriterion *= abs(Gauss_abs_sum)*m_dx;
+
+	//#####################################Temporarily turn off constraint criterion;
+	ConstraintCriterion = 0;
+	//##############################################################################;
 
         data_t maxFixedGridExtraction { simd_max(FixedGridCriterion, ExtractionCriterion) };
         data_t criterion { simd_max(maxFixedGridExtraction, ConstraintCriterion) };
