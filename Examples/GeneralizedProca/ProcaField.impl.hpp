@@ -181,6 +181,12 @@ void ProcaField<potential_t>::add_matter_rhs(
     Tensor<2, data_t> diff_DA;
     FOR2(i, j) { diff_DA[i][j] = d1.Avec[j][i] - d1.Avec[i][j]; }
 
+
+    // Xsquared = X^/mu X_/mu
+    data_t Xsquared;
+    Xsquared = -vars.phi * vars.phi;
+    FOR2(i, j) { Xsquared += gamma_UU[i][j] * vars.Avec[j] * vars.Avec[i]; }
+
     // NB This is for E^i with indices up
     FOR1(i)
     {
@@ -229,6 +235,12 @@ void ProcaField<potential_t>::add_matter_rhs(
         }
     }
 
+    //Extrinsic curvature
+    Tensor<2, data_t> ExCurv;
+    FOR2(i,j){
+        ExCurv = (1./vars.chi)*(vars.A[i][j] + 1./3.*vars.h[i][j]*vars.K);
+    }
+
     // C = 1 + 4 c4 A^k A_k - 12 c4 phi^2
     data_t C = 1.0 - 12.0 * c4 * vars.phi * vars.phi;
     FOR2(i, j)
@@ -259,7 +271,7 @@ void ProcaField<potential_t>::add_matter_rhs(
                         gamma_UU[j][l] * vars.Avec[i] * vars.Avec[j] *
                         DA[k][l] +
                     8.0 * c4 * vars.phi * vars.lapse / C *
-                        (-vars.K_tensor[i][j] * vars.Avec[k] *
+                        (-ExCurv[i][j] * vars.Avec[k] *
                             vars.Avec[l] * gamma_UU[i][k] * gamma_UU[j][l]);
             }
         }
