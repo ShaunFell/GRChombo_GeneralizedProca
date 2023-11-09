@@ -147,6 +147,7 @@ void ProcaField<potential_t>::add_matter_rhs(
     data_t dVddA {0.};
     m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
 
+
     //evolution equations for spatial part of vector field (index down)
     FOR1(i){
         total_rhs.Avec[i] = - vars.lapse*d1.phi[i] - vars.phi*d1.lapse[i] + advec.Avec[i];
@@ -156,12 +157,13 @@ void ProcaField<potential_t>::add_matter_rhs(
         };
     };
 
+
     //evolution equations for Electric vector field (index up)
     FOR1(i){
         total_rhs.Evec[i] = vars.lapse*vars.K*vars.Evec[i] + advec.Evec[i];
 
         FOR1(j){
-            total_rhs.Evec[i] += -vars.lapse*gamma_UU[i][j]*d1.Z[j] + 2*vars.lapse*dVdA*gamma_UU[i][j]*vars.Avec[j] - vars.Evec[j]*d1.shift[i][j];
+            total_rhs.Evec[i] += vars.lapse*gamma_UU[i][j]*d1.Z[j] + 2*vars.lapse*dVdA*gamma_UU[i][j]*vars.Avec[j] - vars.Evec[j]*d1.shift[i][j];
         }
 
         FOR3(j,k,l){
@@ -175,11 +177,11 @@ void ProcaField<potential_t>::add_matter_rhs(
 
 
     //evolution equation for auxiliary constraint-damping scalar field Z
-    total_rhs.Z = -2*vars.lapse*dVdA*vars.phi - m_params.vector_damping*vars.lapse*vars.Z + advec.Z;
+    total_rhs.Z = 2*vars.lapse*dVdA*vars.phi - m_params.vector_damping*vars.lapse*vars.Z + advec.Z;
     FOR1(i){
-        total_rhs.Z += -vars.lapse*d1.Evec[i][i];
+        total_rhs.Z += vars.lapse*d1.Evec[i][i];
         FOR1(j){
-            total_rhs.Z += -vars.lapse*chris_phys[i][i][j]*vars.Evec[j];
+            total_rhs.Z += vars.lapse*chris_phys[i][i][j]*vars.Evec[j];
         }
     }
 
@@ -199,9 +201,10 @@ void ProcaField<potential_t>::add_matter_rhs(
     }
 
     //evolution equation for the scalar part of the Proca field
-    data_t gnn { dVdA - 2*dVddA*vars.phi*vars.phi };
+    data_t gnn { dVdA - 2.0*dVddA*vars.phi*vars.phi };
+    data_t mass { m_potential.m_params.mass };
 
-    total_rhs.phi = vars.lapse*vars.Z/(2*gnn) + vars.lapse*dVdA*vars.phi*vars.K/(gnn) + advec.phi;
+    total_rhs.phi = -vars.lapse*vars.Z*mass*mass/(2*gnn) + vars.lapse*dVdA*vars.phi*vars.K/(gnn) + advec.phi;
     FOR1(i){
         total_rhs.phi += 2*vars.lapse*dVddA*vars.phi*vars.Avec[i]*vars.Evec[i]/gnn;
 
