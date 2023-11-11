@@ -34,6 +34,7 @@
 #include "SetValue.hpp"
 #include "Diagnostics.hpp"
 #include "ExcisionDiagnostics.hpp"
+#include "ExcisionEvolution.hpp"
 
 
 //do things at end of advance step, after RK4 calculation
@@ -45,11 +46,11 @@ void ProcaFieldLevel::specificAdvance()
         PositiveChiAndAlpha(m_p.min_chi, m_p.min_lapse)),
         m_state_new, m_state_new, INCLUDE_GHOST_CELLS);
 
-    //check for nans
+/*     //check for nans
     if (m_p.nan_check){
         BoxLoops::loop(NanCheck(), m_state_new, m_state_new,
                         EXCLUDE_GHOST_CELLS, disable_simd());
-    }
+    } */
 };
 
 //initialize data for the field
@@ -70,6 +71,14 @@ void ProcaFieldLevel::initialData()
 
     fillAllGhosts();
     BoxLoops::loop(GammaCalculator(m_dx), m_state_new, m_state_new, EXCLUDE_GHOST_CELLS);
+
+/*     //excise matter variables within cutoff specified in parameter file
+    BoxLoops::loop(
+        ExcisionEvolution<ProcaFieldWithPotential>(
+            m_dx, m_p.center, m_p.inner_r
+        ),
+        m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
+    ); */
 
     //check for nans in initial data
     if (m_p.nan_check){
@@ -136,6 +145,14 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
         BoxLoops::loop(my_ccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
     }
 
+/*     //excise matter variables within cutoff specified in parameter file
+    BoxLoops::loop(
+        ExcisionEvolution<ProcaFieldWithPotential>(
+            m_dx, m_p.center, m_p.inner_r
+        ),
+        a_soln, a_rhs, SKIP_GHOST_CELLS,disable_simd()
+    ); */
+
 };
 
 void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &a_rhs,
@@ -190,7 +207,6 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                              const FArrayBox &current_state,
                                              const FArrayBox &current_state_diagnostics)
 {
-    pout() << "Tagging criterion on level " << m_level << endl;
     //tag cells based on Hamiltonian constraint
     BoxLoops::loop(
         CustomTaggingCriterion(

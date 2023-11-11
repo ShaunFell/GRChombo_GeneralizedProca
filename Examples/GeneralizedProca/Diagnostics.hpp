@@ -31,7 +31,7 @@ class ProcaConstraint
 
         // Use the variable definition in CCZ4
         template <class data_t>
-        using Vars = typename MatterCCZ4<ProcaField<ProcaPotential>>::template Vars<data_t>;
+        using Vars = typename MatterCCZ4<ProcaField<potential_t>>::template Vars<data_t>;
         
         //calculate constraint equations
         template<class data_t>
@@ -66,8 +66,6 @@ class EffectiveMetric
 
 };
 
-
-
 class ProcaSquared
 {
     protected:
@@ -89,6 +87,28 @@ class ProcaSquared
         void compute(Cell<data_t> current_cell) const;
 };
 
+template <class matter_t>
+class FluxDensities
+{
+
+    template <class data_t>
+    using Vars = typename MatterCCZ4<matter_t>::template Vars<data_t>;
+
+    protected:
+        double m_vector_mass;
+        double m_vector_damping;
+        const FourthOrderDerivatives m_deriv;
+        const double m_dx;                              //!< The grid spacing
+        const std::array<double, CH_SPACEDIM> m_center; 
+        const matter_t m_matter;
+    
+    public:
+        FluxDensities(double, double, double, std::array<double, CH_SPACEDIM>, const matter_t);
+
+        template <class data_t>
+        void compute(Cell<data_t>) const;
+
+};
 
 #include "Diagnostics.impl.hpp"
 #endif //DIAGNOSTIC_H_INCLUDED

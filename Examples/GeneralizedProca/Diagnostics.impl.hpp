@@ -73,8 +73,6 @@ void ProcaConstraint<potential_t>::compute(Cell<data_t> current_cell) const
     current_cell.store_vars(gauss_constraint,c_gauss);
 };
 
-
-
 template <class potential_t>
 template<class data_t>
 void EffectiveMetric<potential_t>::compute(Cell<data_t> current_cell) const
@@ -104,22 +102,13 @@ void EffectiveMetric<potential_t>::compute(Cell<data_t> current_cell) const
 
     gnn = dVdA - 2*dVddA*vars.phi*vars.phi;
 
-#ifdef EQUATION_DEBUG_MODE
-    DEBUG_OUT(dVdA);
-    DEBUG_OUT(dVddA);
-    DEBUG_OUT(vars.phi);
-    DEBUG_OUT(gnn);
-#endif //EQUATION_DEBUG_MODE
+
 
     current_cell.store_vars(gnn, c_gnn);
 
 
 
 }
-
-
-
-
 
 template <class data_t>
 void ProcaSquared::compute(Cell<data_t> current_cell) const
@@ -147,6 +136,34 @@ void ProcaSquared::compute(Cell<data_t> current_cell) const
 
     current_cell.store_vars(Asquared, c_Asquared);
 };
+
+template <class matter_t>
+FluxDensities<matter_t>::FluxDensities(double a_vector_mass, double a_vector_damping, double a_dx, std::array<double, CH_SPACEDIM> a_center, const matter_t a_matter):
+m_deriv{a_dx}, m_dx{a_dx}, m_vector_damping{a_vector_damping}, m_vector_mass{a_vector_mass}, m_matter{a_matter}, m_center{a_center}
+{
+};
+
+template <class matter_t>
+template <class data_t>
+void FluxDensities<matter_t>::compute(Cell<data_t> current_cell) const
+{
+    //extract data from grid
+    const auto vars = current_cell.template load_vars<Vars>();
+    const auto d1 = m_deriv.template diff1<Vars>(current_cell);
+    Coordinates<data_t> coords(current_cell, m_dx, m_center);
+
+    //extract determinant of spatial metric
+    const data_t det_gamma { pow(vars.chi, -3./2.) };
+
+    //compute inverse conformal metric and conformal christoffel symbols
+    const Tensor<2, data_t> h_UU { TensorAlgebra::compute_inverse_sym(vars.h) };
+    const Tensor<3, data_t> chris_ULL { TensorAlgebra::compute_christoffel(d1.h, h_UU).ULL };
+
+    //compute EM Tensor
+    const emtensor_t<data_t> emtensor = m_matter.compute_emtensor(vars, d1, h_UU, chris_ULL);
+
+}
+
 
 
 #endif //DIAGNOSTIC_IMPL_H_INCLUDED
