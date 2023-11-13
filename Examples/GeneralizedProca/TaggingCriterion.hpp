@@ -27,19 +27,21 @@ class CustomTaggingCriterion
     const spherical_extraction_params_t m_params;
     const int m_level;
     const bool m_activate_extraction;
+    const bool m_activate_constrainttagging;
 
   public:
     CustomTaggingCriterion(double dx, const int a_level, const double a_L,    
                                   const spherical_extraction_params_t a_params,
-                                  const bool activate_extraction = false) : m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{activate_extraction} {};
+                                  const bool activate_extraction = false,
+                                  const bool activate_constrainttagging = false) : m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{activate_extraction}, m_activate_constrainttagging{activate_constrainttagging} {};
 
     template <class data_t> void compute(Cell<data_t> current_cell) const
     {
         const Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
 
-        data_t FixedGridCriterion = 0.0;
-        data_t ConstraintCriterion = 0.0;
-        data_t ExtractionCriterion = 0.0;
+        data_t FixedGridCriterion { 0.0 };
+        data_t ConstraintCriterion { 0.0 };
+        data_t ExtractionCriterion { 0.0 };
 
         //Fixed Grid tagging
         double ratio = pow(2.0, -(m_level+2.0));
@@ -66,12 +68,15 @@ class CustomTaggingCriterion
             }
         }
 
-        //Hamiltonian and Gauss tagging
-        auto Ham_abs_sum = current_cell.load_vars(c_Ham_abs_sum);
-        ConstraintCriterion = sqrt(Ham_abs_sum) * m_dx;
+        if (m_activate_constrainttagging)
+        {
+            //Hamiltonian and Gauss tagging
+            auto Ham_abs_sum = current_cell.load_vars(c_Ham_abs_sum);
+            ConstraintCriterion = sqrt(Ham_abs_sum) * m_dx;
 
-        auto Gauss_abs_sum = current_cell.load_vars(c_gauss);
-        ConstraintCriterion *= abs(Gauss_abs_sum)*m_dx;
+            auto Gauss_abs_sum = current_cell.load_vars(c_gauss);
+            ConstraintCriterion *= abs(Gauss_abs_sum)*m_dx;
+        }
 
         data_t maxFixedGridExtraction { simd_max(FixedGridCriterion, ExtractionCriterion) };
         data_t criterion { simd_max(maxFixedGridExtraction, ConstraintCriterion) };

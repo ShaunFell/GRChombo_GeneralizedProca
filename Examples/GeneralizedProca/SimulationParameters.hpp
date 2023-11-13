@@ -51,6 +51,9 @@ class SimulationParameters : public SimulationParametersBase
         //extraction params
         pp.load("inner_r", inner_r, 0.0);
         pp.load("outer_r", outer_r, 200.0);
+
+        //tagging
+        pp.load("activate_constrainttagging", activate_constrainttagging, false);
     }
 
     void check_params()
@@ -80,6 +83,7 @@ class SimulationParameters : public SimulationParametersBase
     InitialProcaData::init_params_t initialdata_params;
 
     bool calculate_constraint_norms;
+    bool activate_constrainttagging;
 };
 
 #endif /* SIMULATIONPARAMETERS_HPP_ */
