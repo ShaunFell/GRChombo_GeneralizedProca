@@ -21,11 +21,11 @@ path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/testing/multiplenode_g
 # plot details
 # select variable 
 plot_variables = ["Asquared", "Gauss", "Ham",  "gnn", "Ham_abs_sum"]
-output_directory = "./Plots/"
+output_directory = os.getcwd()+"/g1_l0/Plots/"
 # max and min values for colourbar
-set_min_max = 0 # 1 for true, 0 for false
-min_value = 0.0
-max_value = 1.0
+set_min_max = 1 # 1 for true, 0 for false
+plot_minmax = {"Asquared":[-0.005,0.005],"Gauss": [-0.01, 0.01],"Ham": [-1,1],"gnn": [-0.5,0.5],"Ham_abs_sum": [0,1]}
+
 # slice origin and normal direction
 origin_point_x = 128
 origin_point_y = 128
@@ -35,8 +35,8 @@ normal_in_y = 0
 normal_in_z = 1
 # max and min coords in the sliced plane (e.g. x and y if normal to z)
 # NB relative to origin as defined above
-min_u = -20
-max_u = 20
+min_u = -30
+max_u = 30
 min_v = min_u
 max_v = max_u
 
@@ -76,9 +76,10 @@ def setup_slice_plot(variableToPlot) :
      # limitsMode =  OriginalData, CurrentPlot
 	PseudocolorAtts.limitsMode = PseudocolorAtts.OriginalData
 	PseudocolorAtts.minFlag = set_min_max
-	PseudocolorAtts.min = min_value
 	PseudocolorAtts.maxFlag = set_min_max
-	PseudocolorAtts.max = max_value
+	PseudocolorAtts.min = plot_minmax[variableToPlot][0]
+	PseudocolorAtts.max = plot_minmax[variableToPlot][1]
+
 	PseudocolorAtts.colorTableName = "viridis"
 	PseudocolorAtts.invertColorTable = 0
      # opacityType = ColorTable, FullyOpaque, Constant, Ramp, VariableRange
@@ -162,13 +163,10 @@ def main():
 
 	for plotvar in plot_variables:
 
-		if plotvar=="Asquared":
-			continue
-
 		print ("Plotting slices for {0}...".format(plotvar))
 		make_slice_plots(plotvar, hdf5files, hdf5files_base)
 		print ("Making a movie...")
-		os.system('ffmpeg -r 5 -f image2 -s 1920x1080 -i ' + output_directory+str(plotvar) + '%04d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p ' + output_directory+"../Movies/"+str(plotvar) + '.mp4')
+		os.system('ffmpeg -y -r 5 -f image2 -s 1920x1080 -i ' + output_directory+str(plotvar) + '%04d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p ' + output_directory+"../Movies/"+str(plotvar) + '.mp4')
 		print ("I've finished!")
 	
 	os.remove("./visitlog.py")

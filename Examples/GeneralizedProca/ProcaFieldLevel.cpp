@@ -210,7 +210,7 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
     //tag cells based on Hamiltonian constraint
     BoxLoops::loop(
         CustomTaggingCriterion(
-                                m_dx, m_level, m_p.L, 
+                                m_dx, m_level, 2.0*m_p.L, 
                                 m_p.extraction_params, 
                                 m_p.activate_extraction
                             ),

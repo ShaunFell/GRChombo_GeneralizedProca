@@ -67,9 +67,9 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
         /////Components of EM tensor
 
         //Eulerian Energy 
-        out.rho = Enorm + dVdA*vars.phi*vars.phi + 1/2*V;
+        out.rho = 0.5 * Enorm + dVdA*vars.phi*vars.phi + 0.5 * V;
         FOR4(i,j,k,l){
-            out.rho += gamma_UU[k][i]*gamma_UU[l][j]*DA[i][j]*DA_antisym[k][l];
+            out.rho += 0.5 * gamma_UU[k][i]*gamma_UU[l][j]*DA[i][j]*DA_antisym[k][l];
         };
 
 
@@ -79,7 +79,7 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
             out.Si[i] += vars.phi*dVdA*vars.Avec[i];
             
             FOR1(j){
-                out.Si[i] += 1./2. * (vars.Evec[j]*DA_antisym[i][j]);
+                out.Si[i] += vars.Evec[j]*DA_antisym[i][j];
             };
         };
 
@@ -87,13 +87,13 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
         FOR2(i,j){
             out.Sij[i][j] = 0; //zero initialize
 
-            out.Sij[i][j] += 1./2. * ( 2*dVdA*vars.Avec[i]*vars.Avec[j] - gamma_LL[i][j]*V + 2*gamma_LL[i][j]*Enorm);
+            out.Sij[i][j] +=  dVdA*vars.Avec[i]*vars.Avec[j] - 0.5 * gamma_LL[i][j]*V + 0.5 * gamma_LL[i][j]*Enorm;
 
             FOR2(l,k){
-                out.Sij[i][j] += 1./2. * (-gamma_LL[i][l]*gamma_LL[j][k]*vars.Evec[l]*vars.Evec[k] + gamma_UU[k][l]*DA_antisym[i][l]*DA_antisym[j][k]);
+                out.Sij[i][j] += -gamma_LL[i][l]*gamma_LL[j][k]*vars.Evec[l]*vars.Evec[k] + gamma_UU[k][l]*DA_antisym[i][l]*DA_antisym[j][k];
 
                 FOR2(m,n){
-                    out.Sij[i][j] += -gamma_LL[i][j]*gamma_UU[m][l]*gamma_UU[n][k]*DA[m][n]*DA_antisym[l][k];
+                    out.Sij[i][j] += -0.5 * gamma_LL[i][j]*gamma_UU[m][l]*gamma_UU[n][k]*DA[m][n]*DA_antisym[l][k];
                 };
             };
         };
