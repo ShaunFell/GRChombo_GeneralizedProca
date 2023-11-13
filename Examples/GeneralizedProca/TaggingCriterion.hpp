@@ -27,13 +27,15 @@ class CustomTaggingCriterion
     const spherical_extraction_params_t m_params;
     const int m_level;
     const bool m_activate_extraction;
-    const bool m_activate_constrainttagging;
+    const bool m_activate_ham_tagging;
+    const bool m_activate_gauss_tagging;
 
   public:
     CustomTaggingCriterion(double dx, const int a_level, const double a_L,    
                                   const spherical_extraction_params_t a_params,
                                   const bool activate_extraction = false,
-                                  const bool activate_constrainttagging = false) : m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{activate_extraction}, m_activate_constrainttagging{activate_constrainttagging} {};
+                                  const bool m_activate_gauss_tagging = false,
+                                  const bool m_activate_ham_tagging = false) : m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{activate_extraction}, m_activate_ham_tagging{m_activate_ham_tagging}, m_activate_gauss_tagging{m_activate_gauss_tagging} {};
 
     template <class data_t> void compute(Cell<data_t> current_cell) const
     {
@@ -68,12 +70,16 @@ class CustomTaggingCriterion
             }
         }
 
-        if (m_activate_constrainttagging)
+        if (m_activate_ham_tagging)
         {
-            //Hamiltonian and Gauss tagging
+            //Hamiltonian tagging
             auto Ham_abs_sum = current_cell.load_vars(c_Ham_abs_sum);
             ConstraintCriterion = sqrt(Ham_abs_sum) * m_dx;
+        }
 
+        if (m_activate_gauss_tagging)
+        {
+            //Gauss tagging
             auto Gauss_abs_sum = current_cell.load_vars(c_gauss);
             ConstraintCriterion *= abs(Gauss_abs_sum)*m_dx;
         }

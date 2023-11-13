@@ -53,7 +53,8 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("outer_r", outer_r, 200.0);
 
         //tagging
-        pp.load("activate_constrainttagging", activate_constrainttagging, false);
+        pp.load("activate_ham_tagging", activate_ham_tagging, false);
+        pp.load("activate_gauss_tagging", activate_gauss_tagging, false);
     }
 
     void check_params()
@@ -83,7 +84,8 @@ class SimulationParameters : public SimulationParametersBase
     InitialProcaData::init_params_t initialdata_params;
 
     bool calculate_constraint_norms;
-    bool activate_constrainttagging;
+    bool activate_ham_tagging;
+    bool activate_gauss_tagging;
 };
 
 #endif /* SIMULATIONPARAMETERS_HPP_ */

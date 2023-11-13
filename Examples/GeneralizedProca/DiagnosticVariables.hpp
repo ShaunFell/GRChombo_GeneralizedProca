@@ -27,6 +27,9 @@ enum
     c_gauss,
     c_Asquared,
     c_gnn,
+    c_g,
+    c_Z_out,
+
 
     NUM_DIAGNOSTIC_VARS
 };
@@ -44,7 +47,7 @@ static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
 
     "Weyl4_Re", "Weyl4_Im",
     
-    "Gauss", "Asquared", "gnn"};
+    "Gauss", "Asquared", "gnn", "g", "Z"};
 }
 
 #endif /* DIAGNOSTICVARIABLES_HPP */

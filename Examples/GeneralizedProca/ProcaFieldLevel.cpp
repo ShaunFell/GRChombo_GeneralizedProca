@@ -197,7 +197,8 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                 m_dx, m_level, 2.0*m_p.L, 
                                 m_p.extraction_params, 
                                 m_p.activate_extraction,
-                                m_p.activate_constrainttagging
+                                m_p.activate_gauss_tagging,
+                                m_p.activate_ham_tagging
                             ),
         current_state_diagnostics, 
         tagging_criterion

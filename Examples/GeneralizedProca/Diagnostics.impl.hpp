@@ -71,6 +71,7 @@ void ProcaConstraint<potential_t>::compute(Cell<data_t> current_cell) const
     data_t gauss_constraint { constraint_equations(current_cell) };
 
     current_cell.store_vars(gauss_constraint,c_gauss);
+    current_cell.store_vars(current_cell.template load_vars<Vars>().Z, c_Z_out);
 };
 
 
@@ -104,6 +105,17 @@ void EffectiveMetric<potential_t>::compute(Cell<data_t> current_cell) const
 
     gnn = dVdA - 2*dVddA*vars.phi*vars.phi;
 
+
+    data_t Xsquared { 0 };
+    FOR2(i,j)
+    {
+        Xsquared += gamma_UU[i][j]*vars.Avec[i]*vars.Avec[j];
+    }
+
+    data_t det_metric { -vars.lapse*vars.lapse/(vars.chi*vars.chi*vars.chi) };
+    data_t det_eff_metric { 2*det_metric*(dVdA - 2*dVddA*vars.phi*vars.phi + 2*dVddA*Xsquared) };
+
+
 #ifdef EQUATION_DEBUG_MODE
     DEBUG_OUT(dVdA);
     DEBUG_OUT(dVddA);
@@ -112,6 +124,7 @@ void EffectiveMetric<potential_t>::compute(Cell<data_t> current_cell) const
 #endif //EQUATION_DEBUG_MODE
 
     current_cell.store_vars(gnn, c_gnn);
+    current_cell.store_vars(det_eff_metric, c_g);
 
 
 
