@@ -160,8 +160,8 @@ min_lapse = 1.e-3
 ################################################## Apparent Horizon Finder parameters
 ##################################################
 
-AH_activate = 1 
-AH_num_ranks = 4
+AH_activate = 1
+AH_num_ranks = 8
 AH_num_points_u = 49
 AH_num_points_v = 48
 AH_solve_interval = 1
@@ -175,7 +175,7 @@ AH_num_extra_vars = 1
 AH_extra_vars = chi
 
 
-AH_level_to_run = 0
+AH_level_to_run = 5
 AH_allow_re_attempt = 1
 AH_start_time = 0.
 AH_give_up_time = -1. # -1 to never
@@ -183,10 +183,14 @@ AH_max_fails_after_lost = 0 # -1 to never
 AH_print_geometry_data = 1
 AH_re_solve_at_restart = 0
 AH_expansion_radius_power = 1.
-AH_look_for_chi_contour = 0.2
-AH_coords_subpath = ""
-AH_stats_prefix = "AH_stats"
+#AH_look_for_chi_contour = 0.2
+AH_coords_subpath = "AH/"
+AH_stats_prefix = "../AH/AH_stats"
 AH_coords_prefix = "AH_coords"
+
+################################################## Excision Parameters
+##################################################
+excision_with_AH = 0
 
 ################################################## Extraction parameters
 ##################################################

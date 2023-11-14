@@ -10,10 +10,11 @@
 #include "VarsTools.hpp"
 #include "AHInterpolation.hpp"
 #include <algorithm>
+#include "simd.hpp"
 
 
 template <class matter_t, class AHinterp_t> 
-class ExcisionProcaEvolution
+class ExcisionProcaEvolutionWithAH
 {
     // Use matter_t class
     using Vars = typename matter_t::template Vars<double>;
@@ -31,7 +32,7 @@ class ExcisionProcaEvolution
     public:
 
         //constructor
-        ExcisionProcaEvolution(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, AHinterp_t& a_ah_interp, const double a_num_AH_points, double a_excision_width=1.0): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_width}, m_ah_interp{a_ah_interp}, m_num_AH_points{a_num_AH_points}
+        ExcisionProcaEvolutionWithAH(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, AHinterp_t& a_ah_interp, const double a_num_AH_points, double a_excision_width=1.0): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_width}, m_ah_interp{a_ah_interp}, m_num_AH_points{a_num_AH_points}
         {
             pout() << "Num AH points: " << m_num_AH_points <<endl;
             for (int i{0}; i < m_num_AH_points; ++i){
@@ -117,4 +118,50 @@ class ExcisionProcaEvolution
             pout() <<"Finished excision." <<endl;
         }//end of method def
 };//end of class def
+
+
+template <class matter_t> 
+class ExcisionProcaEvolution
+{
+    // Use matter_t class
+    template <class data_t>
+    using Vars = typename matter_t::template Vars<data_t>;
+
+    protected:
+        const double m_dx; //grid spacing
+        const double m_excision_width;
+        const std::array<double, CH_SPACEDIM> m_center; //center of BH
+
+    public:
+
+        //constructor
+        ExcisionProcaEvolution(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_excision_cut = 0.25): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_cut}
+        {
+        };
+
+        template <class data_t>
+        void compute(const Cell<data_t> current_cell) const
+        {
+            const Coordinates<data_t> coords(current_cell, m_dx, m_center);
+
+            Tensor<1,data_t> coords_BHCentered { coords.x - m_center[0], coords.y-m_center[1], coords.z - m_center[2] };
+
+            data_t cell_radius_BHCentered { sqrt ( TensorAlgebra::compute_dot_product(coords_BHCentered, coords_BHCentered) ) };
+
+            bool cell_Inside_Cutoff { simd_compare_lt(cell_radius_BHCentered, m_excision_width) };
+
+            if (cell_Inside_Cutoff)
+            {
+                //matter vars within excision zone
+                Vars<data_t> rhs_vars;
+                VarsTools::assign(rhs_vars, 0.0);
+
+                //assign values of variables to cell
+                current_cell.store_vars(rhs_vars);
+
+            } //excision
+
+        }//end of method def
+};//end of class def
+
 #endif //EXCISIONPROCAEVOLUTION_H_INCLUDED

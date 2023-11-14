@@ -34,7 +34,7 @@
 #include "SetValue.hpp"
 #include "Diagnostics.hpp"
 #include "ExcisionDiagnostics.hpp"
-#include "ExcisionProca.hpp"
+#include "ExcisionEvolution.hpp"
 
 
 //do things at end of advance step, after RK4 calculation
@@ -153,6 +153,13 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
         BoxLoops::loop(my_ccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
     }
 
+    if (!m_p.excise_with_AH)
+    {
+        BoxLoops::loop(
+            ExcisionProcaEvolution<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
+            a_soln, a_rhs, SKIP_GHOST_CELLS
+        );
+    };
 };
 
 void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &a_rhs,
@@ -237,15 +244,20 @@ void ProcaFieldLevel::specificPostTimeStep()
     {
         pout() << "Solving AH"<<endl;
         m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
-        pout() << "AH solved. Excising inside AH"<<endl;
-        double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
-        pout() << "AH points determined"<<endl;
-        auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
-        pout() << "AH solved. performing excision"<<endl;
-        BoxLoops::loop(
-            ExcisionProcaEvolution<ProcaFieldWithPotential, decltype(AH_Interp)>(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97),
-            m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
-        );
+
+        //If we perform excision of matter variables using found Apparent Horizon
+        if (m_p.excise_with_AH) 
+        {
+            pout() << "AH solved. Excising inside AH"<<endl;
+            double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
+            pout() << "AH points determined"<<endl;
+            auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
+            pout() << "AH solved. performing excision"<<endl;
+            BoxLoops::loop(
+                ExcisionProcaEvolutionWithAH<ProcaFieldWithPotential, decltype(AH_Interp)>(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97),
+                m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
+            );
+        };
     }
 #endif //USE_AHFINDER
 

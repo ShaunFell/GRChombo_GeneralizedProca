@@ -59,6 +59,7 @@ class SimulationParameters : public SimulationParametersBase
         //AH Finder
 #ifdef USE_AHFINDER
         pp.load("AH_initial_guess", AH_initial_guess, 0.5*kerr_params.mass);
+        pp.load("excision_with_AH", excise_with_AH, false);
 #endif //USE_AHFINDER
     }
 
@@ -94,6 +95,7 @@ class SimulationParameters : public SimulationParametersBase
 
 #ifdef USE_AHFINDER
     double AH_initial_guess;
+    bool excise_with_AH;
 #endif
 
 };
