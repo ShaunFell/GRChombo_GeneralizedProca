@@ -1,13 +1,13 @@
 # See the wiki page for an explanation of the params!
 # https://github.com/GRChombo/GRChombo/wiki/Guide-to-parameters
 
-#################################################
-# Filesystem parameters
+################################################## Filesystem parameters
 
-verbosity = 3
+
+verbosity = 1
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/multiplenode_g1_l0_2/" # Main path for all files. Must exist!
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/multiplenode_g1_l0/" # Main path for all files. Must exist!
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 # restart_file = GeneralizedProca_000060.3d.hdf5
@@ -33,8 +33,8 @@ print_progress_only_to_rank_0 = 1
 # ignore_checkpoint_name_mismatch = 0
 # write_plot_ghosts = 0
 
-#################################################
-#constraint tagging
+################################################# constraint tagging
+##################################################
 activate_ham_tagging = 0
 activate_gauss_tagging = 1
 max_level = 7
@@ -42,12 +42,12 @@ regrid_interval   =  50 50 20 5 1 1 1
 regrid_threshold = 0.05
 
 
-#################################################
-#Physical constants
+################################################## Physical constants
+##################################################
 G_Newton = 1
 
-#################################################
-# Initial Data parameters
+################################################## Initial Data parameters
+##################################################
 
 #Kerr parameters
 kerr_mass = 1.0
@@ -66,8 +66,8 @@ proca_self_interaction = 0.
 #Initial condition parameters
 initial_proca_amplitude = 0.1
 
-#################################################
-# Grid parameters
+################################################## Grid parameters
+##################################################
 
 N_full = 128
 L_full = 256
@@ -85,8 +85,8 @@ grid_buffer_size = 8
 # num_ghosts = 3
 # center = 256.0 256.0 256.0 # defaults to center of the grid
 
-#################################################
-# Boundary Conditions parameters
+################################################## Boundary Conditions parameters
+##################################################
 
 # Periodic directions - 0 = false, 1 = true
 isPeriodic = 0 0 0
@@ -121,8 +121,8 @@ nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
 # num_extrapolating_vars = -1
 # extrapolating_vars =
 
-#################################################
-# Evolution parameters
+################################################## Evolution parameters
+##################################################
 
 # dt will be dx*dt_multiplier on each grid level
 dt_multiplier = 0.2
@@ -157,9 +157,9 @@ sigma = 0.3
 min_chi = 1.e-3
 min_lapse = 1.e-3
 
-#################################################
+################################################## Apparent Horizon Finder parameters
+##################################################
 
-#Apparent Horizon Finder parameters
 AH_activate = 1 
 AH_num_ranks = 4
 AH_num_points_u = 49
@@ -188,8 +188,8 @@ AH_coords_subpath = ""
 AH_stats_prefix = "AH_stats"
 AH_coords_prefix = "AH_coords"
 
-#################################################
-# Extraction parameters
+################################################## Extraction parameters
+##################################################
 
 # extraction_center = 256 256 256 # defaults to center
 

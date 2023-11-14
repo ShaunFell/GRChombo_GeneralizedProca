@@ -34,6 +34,7 @@
 #include "SetValue.hpp"
 #include "Diagnostics.hpp"
 #include "ExcisionDiagnostics.hpp"
+#include "ExcisionProca.hpp"
 
 
 //do things at end of advance step, after RK4 calculation
@@ -206,7 +207,6 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                              const FArrayBox &current_state,
                                              const FArrayBox &current_state_diagnostics)
 {
-    pout() << "Tagging criterion on level " << m_level << endl;
     //tag cells based on Hamiltonian constraint
     BoxLoops::loop(
         CustomTaggingCriterion(
@@ -237,7 +237,7 @@ void ProcaFieldLevel::specificPostTimeStep()
     {
         pout() << "Solving AH"<<endl;
         m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
-/*         pout() << "AH solved. Excising inside AH"<<endl;
+        pout() << "AH solved. Excising inside AH"<<endl;
         double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
         pout() << "AH points determined"<<endl;
         auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
@@ -245,7 +245,7 @@ void ProcaFieldLevel::specificPostTimeStep()
         BoxLoops::loop(
             ExcisionProcaEvolution<ProcaFieldWithPotential, decltype(AH_Interp)>(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97),
             m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
-        ); */
+        );
     }
 #endif //USE_AHFINDER
 

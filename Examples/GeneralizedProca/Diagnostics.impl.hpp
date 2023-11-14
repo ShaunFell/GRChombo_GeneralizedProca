@@ -159,7 +159,9 @@ template <class potential_t, class matter_t>
 template <class data_t>
 void EnergyAndAngularMomentum<potential_t, matter_t>::compute(Cell<data_t> current_cell) const 
 {
-    
+    const auto vars = current_cell.template load_vars<Vars>();
+    const auto d1 = m_deriv.template diff1<Vars>(current_cell);
+    Coordinates<data_t> coords(current_cell, m_dx, m_center);
 }
 
 
