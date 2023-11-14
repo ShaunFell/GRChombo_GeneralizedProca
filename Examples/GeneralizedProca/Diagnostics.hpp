@@ -92,8 +92,6 @@ class EnergyAndAngularMomentum
 {
     protected:
 
-        const FourthOrderDerivatives m_deriv;
-
         //extract all grid variables
         template <class data_t>
         using Vars = typename MatterCCZ4<ProcaField<ProcaPotential>>::template Vars<data_t>;
@@ -112,7 +110,7 @@ class EnergyAndAngularMomentum
 
         template <class data_t>
         void compute(Cell<data_t> current_cell) const;
-}
+};
 
 
 #include "Diagnostics.impl.hpp"

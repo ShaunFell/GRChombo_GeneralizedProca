@@ -156,6 +156,7 @@ void ProcaSquared::compute(Cell<data_t> current_cell) const
 };
 
 template <class potential_t, class matter_t>
+template <class data_t>
 void EnergyAndAngularMomentum<potential_t, matter_t>::compute(Cell<data_t> current_cell) const 
 {
     
