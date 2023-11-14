@@ -184,9 +184,9 @@ AH_print_geometry_data = 1
 AH_re_solve_at_restart = 0
 AH_expansion_radius_power = 1.
 AH_look_for_chi_contour = 0.2
-AH_coords_subpath = "coords"
-AH_stats_prefix = "stats_AH"
-AH_coords_prefix = "coords_AH"
+AH_coords_subpath = ""
+AH_stats_prefix = "AH_stats"
+AH_coords_prefix = "AH_coords"
 
 #################################################
 # Extraction parameters
