@@ -55,6 +55,11 @@ class SimulationParameters : public SimulationParametersBase
         //tagging
         pp.load("activate_ham_tagging", activate_ham_tagging, false);
         pp.load("activate_gauss_tagging", activate_gauss_tagging, false);
+
+        //AH Finder
+#ifdef USE_AHFINDER
+        pp.load("AH_initial_guess", AH_initial_guess, 0.5*kerr_params.mass);
+#endif //USE_AHFINDER
     }
 
     void check_params()
@@ -86,6 +91,11 @@ class SimulationParameters : public SimulationParametersBase
     bool calculate_constraint_norms;
     bool activate_ham_tagging;
     bool activate_gauss_tagging;
+
+#ifdef USE_AHFINDER
+    double AH_initial_guess;
+#endif
+
 };
 
 #endif /* SIMULATIONPARAMETERS_HPP_ */

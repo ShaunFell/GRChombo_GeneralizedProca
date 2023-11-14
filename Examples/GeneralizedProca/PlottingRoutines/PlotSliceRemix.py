@@ -21,7 +21,7 @@ path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/testing/multiplenode_g
 # plot details
 # select variable 
 plot_variables = ["Asquared", "Gauss", "Ham",  "gnn", "Ham_abs_sum"]
-output_directory = "./Plots/"
+output_directory = "./g1_l0/Plots/"
 # max and min values for colourbar
 set_min_max = 0 # 1 for true, 0 for false
 min_value = 0.0

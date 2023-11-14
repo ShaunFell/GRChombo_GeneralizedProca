@@ -5,6 +5,7 @@
 #include "GRAMRLevel.hpp"
 #include "Potential.hpp"
 #include "ProcaField.hpp"
+#include "BHAMR.hpp"
 
 
 class ProcaFieldLevel : public GRAMRLevel
@@ -13,6 +14,8 @@ class ProcaFieldLevel : public GRAMRLevel
     friend class DefaultLevelFactory<ProcaFieldLevel>;
     //inherit constructors from GRAMRLevel;
     using GRAMRLevel::GRAMRLevel;
+    
+    BHAMR &m_bh_amr = dynamic_cast<BHAMR &>(m_gr_amr);
 
     //typedef the scalar field class;
     typedef ProcaField<ProcaPotential> ProcaFieldWithPotential;

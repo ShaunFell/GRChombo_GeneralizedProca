@@ -45,13 +45,32 @@ int runGRChombo(int argc, char *argv[])
     AMRInterpolator<Lagrange<4>> interpolator(
         bh_amr, sim_params.origin, sim_params.dx, sim_params.boundary_params,
         sim_params.verbosity);
-    bh_amr.set_interpolator(
-        &interpolator); // also sets puncture_tracker interpolator
+    bh_amr.set_interpolator(&interpolator); // also sets puncture_tracker interpolator
 
     using Clock = std::chrono::steady_clock;
     using Minutes = std::chrono::duration<double, std::ratio<60, 1>>;
 
     std::chrono::time_point<Clock> start_time = Clock::now();
+
+#ifdef USE_AHFINDER //Chombo make flags
+    if (sim_params.AH_activate)
+    {
+        pout() << "Defining surface geometry"<<endl;
+        AHSurfaceGeometry sph(sim_params.kerr_params.center);
+
+#ifdef USE_CHI_CONTOURS //located in UserVariables
+        std::string str_chi = std::to_string(
+            sim_params.AH_params.func_params.look_for_chi_contour);
+        sim_params.AH_params.stats_prefix = "stats_chi_" + str_chi + "_";
+        sim_params.AH_params.coords_prefix = "coords_chi_" + str_chi + "_";
+        bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
+#else 
+        pout() << "adding ah horizon"<<endl;
+        bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
+#endif //USE_CHI_CONTOURS
+    }
+#endif //USE_AHFINDER
+
 
     //call the PostTimeStep right now!!!!
     auto task = [](GRAMRLevel *level)

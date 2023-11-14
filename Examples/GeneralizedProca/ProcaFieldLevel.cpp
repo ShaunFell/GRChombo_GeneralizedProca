@@ -77,6 +77,15 @@ void ProcaFieldLevel::initialData()
                         EXCLUDE_GHOST_CELLS, disable_simd());
     }
 
+#ifdef USE_AHFINDER
+    //apparently this is needed for the AHFinder
+    BoxLoops::loop(
+        Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
+        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
+    );
+    
+#endif //USE_AHFINDER
+
 };
 
 #ifdef CH_USE_HDF5
@@ -107,6 +116,13 @@ void ProcaFieldLevel::prePlotLevel()
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
     
+#ifdef USE_AHFINDER
+    //already calculated in specific PostTimeStep
+    if(m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time)){
+        return;
+    }
+#endif //USE_AHFINDER
+
     BoxLoops::loop(
         ExcisionDiagnostics(m_dx, m_p.center, m_p.inner_r, m_p.outer_r),
         m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
@@ -209,6 +225,30 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
 void ProcaFieldLevel::specificPostTimeStep()
 {
     CH_TIME("ProcaFieldLevel::specificPostTimeStep");
+
+#ifdef USE_AHFINDER
+    if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time))
+    {
+        fillAllGhosts();
+        BoxLoops::loop(Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
+                       m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
+    }
+    if (m_p.AH_activate && m_level == m_p.AH_params.level_to_run)
+    {
+        pout() << "Solving AH"<<endl;
+        m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
+/*         pout() << "AH solved. Excising inside AH"<<endl;
+        double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
+        pout() << "AH points determined"<<endl;
+        auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
+        pout() << "AH solved. performing excision"<<endl;
+        BoxLoops::loop(
+            ExcisionProcaEvolution<ProcaFieldWithPotential, decltype(AH_Interp)>(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97),
+            m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
+        ); */
+    }
+#endif //USE_AHFINDER
+
     bool first_step = (m_time == m_dt); //is this the first call of posttimestep?
 
     if (m_p.activate_extraction == 1)

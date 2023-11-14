@@ -11,3 +11,5 @@ Current initial condition of Proca field:
     X_z = 0
     X_phi = 0
     E^i = 0
+
+Kerr black metric is in form of quasi-isotropic coordinates
