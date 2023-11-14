@@ -41,7 +41,7 @@ int runGRChombo(int argc, char *argv[])
     DefaultLevelFactory<ProcaFieldLevel> proca_field_level_fact(bh_amr, sim_params);
     setupAMRObject(bh_amr, proca_field_level_fact);
 
-    //set interpolating object
+    //setup interpolating object
     AMRInterpolator<Lagrange<4>> interpolator(
         bh_amr, sim_params.origin, sim_params.dx, sim_params.boundary_params,
         sim_params.verbosity);

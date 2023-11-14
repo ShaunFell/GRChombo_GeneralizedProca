@@ -11,10 +11,6 @@ ipo_out.optrpt
 jobscript*
 *.pbs
 
-#parameter files
-params.txt
-params_*.txt
-*_params.txt
 
 # Example output
 Weyl_integral*
@@ -31,8 +27,11 @@ data
 datasets
 
 #Plots
+g0_l0
+g1_l0
 Plots
 Movies
+visitlog.py
 
 # Documentation
 Doxygen/html
