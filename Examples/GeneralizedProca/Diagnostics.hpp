@@ -66,8 +66,6 @@ class EffectiveMetric
 
 };
 
-
-
 class ProcaSquared
 {
     protected:
@@ -88,6 +86,33 @@ class ProcaSquared
         template<class data_t>
         void compute(Cell<data_t> current_cell) const;
 };
+
+template <class potential_t, class matter_t>
+class EnergyAndAngularMomentum
+{
+    protected:
+
+        const FourthOrderDerivatives m_deriv;
+
+        //extract all grid variables
+        template <class data_t>
+        using Vars = typename MatterCCZ4<ProcaField<ProcaPotential>>::template Vars<data_t>;
+
+        //extract only matter field variables
+        template<class data_t>
+        using MatterVars = ProcaField<ProcaPotential>::template Vars<data_t>;
+
+        const matter_t m_matter;
+        const double m_dx;
+        const std::array<double, CH_SPACEDIM> m_center;
+        const FourthOrderDerivatives m_deriv;
+
+    public:
+        EnergyAndAngularMomentum(double a_dx, matter_t a_matter, std::array<double, CH_SPACEDIM> a_center):m_matter{a_matter}, m_dx{a_dx}, m_center{a_center}, m_deriv{a_dx} {};
+
+        template <class data_t>
+        void compute(Cell<data_t> current_cell) const;
+}
 
 
 #include "Diagnostics.impl.hpp"

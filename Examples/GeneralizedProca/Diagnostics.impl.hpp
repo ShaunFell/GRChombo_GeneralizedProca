@@ -74,8 +74,6 @@ void ProcaConstraint<potential_t>::compute(Cell<data_t> current_cell) const
     current_cell.store_vars(current_cell.template load_vars<Vars>().Z, c_Z_out);
 };
 
-
-
 template <class potential_t>
 template<class data_t>
 void EffectiveMetric<potential_t>::compute(Cell<data_t> current_cell) const
@@ -130,10 +128,6 @@ void EffectiveMetric<potential_t>::compute(Cell<data_t> current_cell) const
 
 }
 
-
-
-
-
 template <class data_t>
 void ProcaSquared::compute(Cell<data_t> current_cell) const
 {
@@ -160,6 +154,12 @@ void ProcaSquared::compute(Cell<data_t> current_cell) const
 
     current_cell.store_vars(Asquared, c_Asquared);
 };
+
+template <class potential_t, class matter_t>
+void EnergyAndAngularMomentum<potential_t, matter_t>::compute(Cell<data_t> current_cell) const 
+{
+    
+}
 
 
 #endif //DIAGNOSTIC_IMPL_H_INCLUDED

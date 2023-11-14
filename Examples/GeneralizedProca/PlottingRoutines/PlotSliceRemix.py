@@ -16,7 +16,7 @@ import glob, os
 #plt_prefix = "MyPlot_plt"
 #path_to_hdf5_files = "/path_to_file/"
 plt_prefix = "GeneralizedProcap_"
-path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/prod/multiplenode_g0_l0_hdf5/"
+path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/testing/multiplenode_g1_l0_2/hdf5/"
 
 # plot details
 # select variable 
