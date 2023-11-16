@@ -24,6 +24,7 @@
 
 //cell tagging
 #include "TaggingCriterion.hpp"
+#include "FixedGridsTaggingCriterion.hpp"
 
 //problem specific includes
 #include "GammaCalculator.hpp"
@@ -84,7 +85,6 @@ void ProcaFieldLevel::initialData()
         Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
     );
-    
 #endif //USE_AHFINDER
 
 };
@@ -157,7 +157,7 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     {
         BoxLoops::loop(
             ExcisionProcaEvolution<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
-            a_soln, a_rhs, SKIP_GHOST_CELLS
+            a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
         );
     };
 };
@@ -214,8 +214,7 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                              const FArrayBox &current_state,
                                              const FArrayBox &current_state_diagnostics)
 {
-    //tag cells based on Hamiltonian constraint
-    BoxLoops::loop(
+    /* BoxLoops::loop(
         CustomTaggingCriterion(
                                 m_dx, m_level, 2.0*m_p.L, 
                                 m_p.extraction_params, 
@@ -223,9 +222,13 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                 m_p.activate_gauss_tagging,
                                 m_p.activate_ham_tagging
                             ),
-        current_state_diagnostics, 
+        current_state, 
         tagging_criterion
-    );
+    ); */
+
+    BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level,
+                                                    2.0*m_p.L, m_p.center),
+                       current_state, tagging_criterion, disable_simd());
 }
 
 
@@ -234,7 +237,7 @@ void ProcaFieldLevel::specificPostTimeStep()
     CH_TIME("ProcaFieldLevel::specificPostTimeStep");
 
 #ifdef USE_AHFINDER
-    if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time))
+    if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time) && m_p.AH_activate)
     {
         fillAllGhosts();
         BoxLoops::loop(Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
@@ -263,7 +266,7 @@ void ProcaFieldLevel::specificPostTimeStep()
 
     bool first_step = (m_time == m_dt); //is this the first call of posttimestep?
 
-    if (m_p.activate_extraction == 1)
+    if (m_p.activate_extraction)
     {
 
         int min_level = m_p.extraction_params.min_extraction_level();

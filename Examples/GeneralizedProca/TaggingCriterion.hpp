@@ -46,7 +46,7 @@ class CustomTaggingCriterion
         data_t ExtractionCriterion { 0.0 };
 
         //Fixed Grid tagging
-        double ratio = pow(2.0, -(m_level+2.0));
+        double ratio = pow(2.0, -(m_level + 2.0));
         const data_t max_abs_xy = simd_max(abs(coords.x), abs(coords.y));
         const data_t max_abs_xyz = simd_max(max_abs_xy, abs(coords.z));
         auto regrid = simd_compare_lt(max_abs_xyz, m_L*ratio);
@@ -74,21 +74,22 @@ class CustomTaggingCriterion
         {
             //Hamiltonian tagging
             auto Ham_abs_sum = current_cell.load_vars(c_Ham_abs_sum);
-            ConstraintCriterion = sqrt(Ham_abs_sum) * m_dx;
+            ConstraintCriterion += sqrt(Ham_abs_sum) * m_dx;
         }
 
         if (m_activate_gauss_tagging)
         {
             //Gauss tagging
             auto Gauss_abs_sum = current_cell.load_vars(c_gauss);
-            ConstraintCriterion *= abs(Gauss_abs_sum)*m_dx;
+            ConstraintCriterion += abs(Gauss_abs_sum)*m_dx;
         }
-
         data_t maxFixedGridExtraction { simd_max(FixedGridCriterion, ExtractionCriterion) };
         data_t criterion { simd_max(maxFixedGridExtraction, ConstraintCriterion) };
 
+        pout() << "m_level: " << m_level << "  FixedGridCriterion: " << FixedGridCriterion<<endl << "ExtractionCriterion: " << ExtractionCriterion<<endl << "ConstraintCriterion: " << ConstraintCriterion<<endl << "criterion: " << criterion<<endl;
+
         // Write back into the flattened Chombo box
-        current_cell.store_vars(criterion, 0);
+        current_cell.store_vars(FixedGridCriterion, 0);
     }
 };
 

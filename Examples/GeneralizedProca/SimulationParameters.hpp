@@ -33,7 +33,7 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("kerr_mass", kerr_params.mass);
         pp.load("kerr_spin", kerr_params.spin);
         pp.load("kerr_center", kerr_params.center, center);
-        pp.load("kerr_spindir", kerr_params.spin_direction);
+        //pp.load("kerr_spindir", kerr_params.spin_direction);
 
         //proca data
         pp.load("proca_mass", potential_params.mass);
@@ -71,6 +71,9 @@ class SimulationParameters : public SimulationParametersBase
                         std::abs(kerr_params.spin) <= kerr_params.mass,
                         "must satisfy |a| <= M = " +
                             std::to_string(kerr_params.mass));
+
+        check_parameter("excision_with_AH", excise_with_AH, !(excise_with_AH && !AH_activate), "AH Finder must be turned on to use dynamical excision");
+
         FOR(idir)
         {
             std::string name = "kerr_center[" + std::to_string(idir) + "]";

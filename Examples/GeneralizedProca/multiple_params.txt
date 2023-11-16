@@ -7,7 +7,7 @@
 verbosity = 1
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/multiplenode_g1_l0/" # Main path for all files. Must exist!
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/multiplenode_g1_l0_2/" # Main path for all files. Must exist!
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 # restart_file = GeneralizedProca_000060.3d.hdf5
@@ -17,8 +17,8 @@ checkpoint_interval = 10
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 1
-num_plot_vars = 9
-plot_vars = chi phi Ham Gauss Asquared gnn Ham_abs_sum Weyl4_Re Weyl4_Im
+num_plot_vars = 10
+plot_vars = chi phi Ham Gauss Asquared gnn Ham_abs_sum Weyl4_Re Weyl4_Im Z
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -39,7 +39,7 @@ activate_ham_tagging = 0
 activate_gauss_tagging = 1
 max_level = 7
 regrid_interval   =  50 50 20 5 1 1 1
-regrid_threshold = 0.05
+regrid_threshold = 0.005
 
 
 ################################################## Physical constants
@@ -125,8 +125,8 @@ nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
 ##################################################
 
 # dt will be dx*dt_multiplier on each grid level
-dt_multiplier = 0.2
-stop_time = 5000.0
+dt_multiplier = 0.3
+stop_time = 0.5
 # max_steps = 100
 
 # Spatial derivative order (only affects CCZ4 RHS)
@@ -160,7 +160,7 @@ min_lapse = 1.e-3
 ################################################## Apparent Horizon Finder parameters
 ##################################################
 
-AH_activate = 1
+AH_activate = 0
 AH_num_ranks = 8
 AH_num_points_u = 49
 AH_num_points_v = 48
@@ -170,7 +170,7 @@ AH_track_center = false
 AH_predict_origin = false
 AH_stop_if_max_fails = 1
 AH_verbose = 1
-AH_initial_guess = 0.358
+AH_initial_guess = 1.435
 AH_num_extra_vars = 1
 AH_extra_vars = chi
 
@@ -190,19 +190,20 @@ AH_coords_prefix = "AH_coords"
 
 ################################################## Excision Parameters
 ##################################################
-excision_with_AH = 0
+excision_with_AH = 0 ## dont activate. I haven't debugged yet...
 
 ################################################## Extraction parameters
 ##################################################
 
 # extraction_center = 256 256 256 # defaults to center
 
-activate_extraction = 1
+activate_extraction = 0
+calculate_constraint_norms = 0
 
 
 num_extraction_radii = 2
 extraction_radii = 50.0 100.0
-inner_r = 0.25 #minimal horizon size due to extremal kerr in quasi-isotropic coordinates arxiv:1001.4077
+inner_r = 0.25 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1
 outer_r = 120.0
 extraction_levels = 2 2
 num_points_phi = 24
@@ -219,7 +220,7 @@ modes = 2 0 # l m for spherical harmonics
 
 integral_file_prefix = "Weyl4_mode_"
 
-write_extraction = 1
+write_extraction = 0
 extraction_subpath = "/extraction" # directory for 'write_extraction = 1'
 extraction_file_prefix = "Weyl4_extraction_"
 

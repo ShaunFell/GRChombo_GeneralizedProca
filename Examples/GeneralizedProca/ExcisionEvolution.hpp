@@ -135,7 +135,7 @@ class ExcisionProcaEvolution
     public:
 
         //constructor
-        ExcisionProcaEvolution(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_excision_cut = 0.25): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_cut}
+        ExcisionProcaEvolution(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_excision_cut = 1): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_cut}
         {
         };
 
@@ -148,7 +148,7 @@ class ExcisionProcaEvolution
 
             data_t cell_radius_BHCentered { sqrt ( TensorAlgebra::compute_dot_product(coords_BHCentered, coords_BHCentered) ) };
 
-            bool cell_Inside_Cutoff { simd_compare_lt(cell_radius_BHCentered, m_excision_width) };
+            data_t cell_Inside_Cutoff { simd_compare_lt(cell_radius_BHCentered, m_excision_width) };
 
             if (cell_Inside_Cutoff)
             {
