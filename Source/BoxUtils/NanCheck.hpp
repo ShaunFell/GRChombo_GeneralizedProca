@@ -9,29 +9,36 @@
 #include "Cell.hpp"
 #include "Coordinates.hpp"
 #include "UserVariables.hpp"
+#include "GRAMRLevel.hpp"
+#include "BHAMR.hpp"
 
 /// This compute class checks for nans or very large values and aborts the
 /// execution when they appear displying a custom or default error message.
 class NanCheck
 {
   protected:
+
+    const BHAMR& m_bh_amr;
     const double m_dx;
     const std::array<double, CH_SPACEDIM> &m_center;
     const std::string m_error_info;
     const double m_max_abs;
 
   public:
-    NanCheck(const std::string a_error_info = "NanCheck",
+
+    NanCheck(const BHAMR& amr,
+             const std::string a_error_info = "NanCheck",
              const double a_max_abs = 1e20)
-        : NanCheck(-1, {0.}, a_error_info, a_max_abs)
+        : NanCheck(amr, -1, {0.}, a_error_info, a_max_abs)
     {
     }
 
-    NanCheck(const double a_dx, const std::array<double, CH_SPACEDIM> &a_center,
+    NanCheck(const BHAMR& amr,
+             const double a_dx, const std::array<double, CH_SPACEDIM> &a_center,
              const std::string a_error_info = "NanCheck",
              const double a_max_abs = 1e20)
-        : m_dx(a_dx), m_center(a_center), m_error_info(a_error_info),
-          m_max_abs(a_max_abs)
+        : m_bh_amr(amr), m_dx(a_dx), m_center(a_center), 
+          m_error_info(a_error_info), m_max_abs(a_max_abs)
     {
     }
 
@@ -65,6 +72,10 @@ class NanCheck
                     pout() << coords << std::endl;
                 }
             }
+
+            // save a checkpoint before aborting
+            m_bh_amr.forceCheckpoint();
+
             MayDay::Error("Values have become nan.");
         }
     }

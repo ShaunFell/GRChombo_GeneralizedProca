@@ -49,7 +49,7 @@ void ProcaFieldLevel::specificAdvance()
 
     //check for nans
     if (m_p.nan_check){
-        BoxLoops::loop(NanCheck(), m_state_new, m_state_new,
+        BoxLoops::loop(NanCheck(m_bh_amr), m_state_new, m_state_new,
                         EXCLUDE_GHOST_CELLS, disable_simd());
     }
 };
@@ -75,7 +75,7 @@ void ProcaFieldLevel::initialData()
 
     //check for nans in initial data
     if (m_p.nan_check){
-        BoxLoops::loop(NanCheck(), m_state_new, m_state_new,
+        BoxLoops::loop(NanCheck(m_bh_amr), m_state_new, m_state_new,
                         EXCLUDE_GHOST_CELLS, disable_simd());
     }
 

@@ -43,6 +43,13 @@ class BHAMR : public GRAMR
         m_ah_finder.set_interpolator(a_interpolator);
 #endif
     }
+
+    // force the generation of a checkpoint file
+    void forceCheckpoint() const 
+    {
+        writeCheckpointFile();
+    }
+
 };
 
 #endif /* BHAMR_HPP_ */
