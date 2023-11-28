@@ -7,7 +7,7 @@
 verbosity = 1
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/dev_multiple_il_22846163"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/proca_fat_verycheap_22856616"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -17,8 +17,8 @@ checkpoint_interval = 1
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 1
-num_plot_vars = 10
-plot_vars = chi phi Ham Gauss Asquared gnn Ham_abs_sum Weyl4_Re Weyl4_Im Z
+num_plot_vars = 6 
+plot_vars = chi Ham Gauss Asquared gnn Z 
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -37,7 +37,8 @@ print_progress_only_to_rank_0 = 1
 ##################################################
 activate_ham_tagging = 0
 activate_gauss_tagging = 0
-max_level = 5
+
+max_level = 4
 
 #using fixed grid right now. Uncomment when using Constraint tagging!!
 regrid_interval   =  0 0 0 0 0
@@ -54,8 +55,8 @@ G_Newton = 1
 #Kerr parameters
 kerr_mass = 1.0
 kerr_spin = 0.99
-kerr_center = 128 128 128 # defauts to center
-kerr_spindir = 0 0 1 #along z-axis
+kerr_center = 16 16 16 # center
+kerr_spindir = 0 0 1 # along z-axis
 
 
 #Proca parameters
@@ -71,12 +72,12 @@ initial_proca_amplitude = 0.1
 ################################################## Grid parameters
 ##################################################
 
-N_full = 128
-L_full = 256
+N_full = 64
+L_full = 32
 
 # Max and min box sizes
-max_box_size = 32
-min_box_size = 32
+max_box_size = 64
+min_box_size = 64
 
 #for fixed grid tagging
 tag_buffer_size = 8
@@ -88,7 +89,7 @@ grid_buffer_size = 8
 # center = 256.0 256.0 256.0 # defaults to center of the grid
 
 #global scaling of refinement levels. Larger value equals larger refinement levels
-grid_scaling = 3.0
+grid_scaling = 2.0
 
 ################################################## Boundary Conditions parameters
 ##################################################
@@ -130,7 +131,8 @@ nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
 ##################################################
 
 # dt will be dx*dt_multiplier on each grid level
-dt_multiplier = 0.3
+#dt_multiplier = 0.2
+dt_multiplier = 0.8
 stop_time = 1000
 # max_steps = 100
 
@@ -157,8 +159,8 @@ kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
 # coefficient for KO numerical dissipation
-#sigma = 0.3 #default
-sigma = 0.5
+sigma = 0.3 #default
+#sigma = 0.5
 
 min_chi = 1.e-3
 min_lapse = 1.e-3

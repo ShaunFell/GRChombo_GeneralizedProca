@@ -56,6 +56,9 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("activate_ham_tagging", activate_ham_tagging, false);
         pp.load("activate_gauss_tagging", activate_gauss_tagging, false);
 
+        //grid parameters
+        pp.load("grid_scaling", grid_scaling, 1.);
+
         //AH Finder
 #ifdef USE_AHFINDER
         pp.load("AH_initial_guess", AH_initial_guess, 0.5*kerr_params.mass);
@@ -73,6 +76,8 @@ class SimulationParameters : public SimulationParametersBase
                             std::to_string(kerr_params.mass));
 
         check_parameter("excision_with_AH", excise_with_AH, !(excise_with_AH && !AH_activate), "AH Finder must be turned on to use dynamical excision");
+
+        check_parameter("grid_scaling", grid_scaling, grid_scaling>0, "Grid scaling parameter must be greater than zero");
 
         FOR(idir)
         {
@@ -95,6 +100,7 @@ class SimulationParameters : public SimulationParametersBase
     bool calculate_constraint_norms;
     bool activate_ham_tagging;
     bool activate_gauss_tagging;
+    double grid_scaling;
 
 #ifdef USE_AHFINDER
     double AH_initial_guess;

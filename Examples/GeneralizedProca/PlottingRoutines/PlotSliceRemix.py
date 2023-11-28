@@ -15,13 +15,17 @@ import glob, os
 # file details
 #plt_prefix = "MyPlot_plt"
 #path_to_hdf5_files = "/path_to_file/"
-plt_prefix = "GeneralizedProcap_"
-path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/testing/multiplenode_g1_l0_2/hdf5/"
+#plt_prefix = "GeneralizedProcap_"
+plt_prefix = "SuperradianceM0P_"
+#path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/testing/multiplenode_g1_l0_2/hdf5/"
+path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/katysSuperradiance/home/hd/hd_hd/hd_pb293/WS_GRChombo/katysSuperradiance/hdf5/"
 
 # plot details
 # select variable 
-plot_variables = ["Asquared", "Gauss", "Ham",  "gnn", "Ham_abs_sum"]
-output_directory = "./g1_l0/Plots/"
+#plot_variables = ["Asquared", "Gauss", "Ham",  "gnn", "Ham_abs_sum"]
+plot_variables = ["rho", "gauss"]
+#output_directory = "./g1_l0/Plots/"
+output_directory = "./KatysSuperradiance/Plots/"
 # max and min values for colourbar
 set_min_max = 0 # 1 for true, 0 for false
 min_value = 0.0

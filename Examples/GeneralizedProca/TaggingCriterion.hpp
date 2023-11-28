@@ -25,38 +25,49 @@ class CustomTaggingCriterion
     const double m_dx;
     const double m_L;
     const spherical_extraction_params_t m_params;
+    const std::array<double, CH_SPACEDIM> m_center;
     const int m_level;
     const bool m_activate_extraction;
     const bool m_activate_ham_tagging;
     const bool m_activate_gauss_tagging;
 
+
   public:
     CustomTaggingCriterion(double dx, const int a_level, const double a_L,    
+                                  const std::array<double, CH_SPACEDIM> a_center,
                                   const spherical_extraction_params_t a_params,
                                   const bool activate_extraction = false,
                                   const bool m_activate_gauss_tagging = false,
-                                  const bool m_activate_ham_tagging = false) : m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{activate_extraction}, m_activate_ham_tagging{m_activate_ham_tagging}, m_activate_gauss_tagging{m_activate_gauss_tagging} {};
+                                  const bool m_activate_ham_tagging = false) : m_center{a_center}, m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{activate_extraction}, m_activate_ham_tagging{m_activate_ham_tagging}, m_activate_gauss_tagging{m_activate_gauss_tagging} 
+                                  {
+                                  };
 
-    template <class data_t> void compute(Cell<data_t> current_cell) const
+    template <class data_t> 
+    data_t FixedGridTagging(Cell<data_t> current_cell) const
     {
-        const Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
-
-        data_t FixedGridCriterion { 0.0 };
-        data_t ConstraintCriterion { 0.0 };
-        data_t ExtractionCriterion { 0.0 };
-
-        //Fixed Grid tagging
+        data_t criterion { 0. };
+        // make sure the inner part is regridded around the horizon
+        // take L as the length of full grid, so tag inner 1/2
+        // of it, which means inner \pm L/4
         double ratio = pow(2.0, -(m_level + 2.0));
+        const Coordinates<data_t> coords(current_cell, m_dx, m_center);
         const data_t max_abs_xy = simd_max(abs(coords.x), abs(coords.y));
         const data_t max_abs_xyz = simd_max(max_abs_xy, abs(coords.z));
-        auto regrid = simd_compare_lt(max_abs_xyz, m_L*ratio);
-        FixedGridCriterion = simd_conditional(regrid, 100.0, FixedGridCriterion);
+        auto regrid = simd_compare_lt(max_abs_xyz, m_L * ratio);
+        criterion = simd_conditional(regrid, 100.0, criterion);
 
+        return criterion;
+    }
 
-        //Extraction radius Tagging
-        //If extractin weyl data at given radius, enforce given resolution there
+    template <class data_t>
+    data_t ExtractionTagging(Cell<data_t> current_cell) const
+    {
+        data_t criterion { 0. };
+
         if (m_activate_extraction)
         {
+            const Coordinates<data_t> coords(current_cell, m_dx, m_center);
+            
             for (int iradius {0}; iradius < m_params.num_extraction_radii; ++iradius)
             {
                 //regrid if within extraction level
@@ -65,31 +76,54 @@ class CustomTaggingCriterion
                     const data_t r = coords.get_radius();
                     // add 20% buffer to extraction zone to avoid boundary
                     auto regrid = simd_compare_lt(r, 1.2*m_params.extraction_radii[iradius]);
-                    ExtractionCriterion = simd_conditional(regrid, 100.0, ExtractionCriterion);
+                    criterion = simd_conditional(regrid, 100.0, criterion);
                 }
             }
         }
 
+        return criterion;
+    }
+
+    template <class data_t>
+    data_t ConstraintTagging(Cell<data_t> current_cell) const
+    {
+        data_t criterion { 0. };
         if (m_activate_ham_tagging)
         {
             //Hamiltonian tagging
             auto Ham_abs_sum = current_cell.load_vars(c_Ham_abs_sum);
-            ConstraintCriterion += sqrt(Ham_abs_sum) * m_dx;
+            criterion += sqrt(Ham_abs_sum) * m_dx;
         }
 
         if (m_activate_gauss_tagging)
         {
             //Gauss tagging
             auto Gauss_abs_sum = current_cell.load_vars(c_gauss);
-            ConstraintCriterion += abs(Gauss_abs_sum)*m_dx;
+            criterion += abs(Gauss_abs_sum)*m_dx;
         }
-        data_t maxFixedGridExtraction { simd_max(FixedGridCriterion, ExtractionCriterion) };
-        data_t criterion { simd_max(maxFixedGridExtraction, ConstraintCriterion) };
 
-        pout() << "m_level: " << m_level << "  FixedGridCriterion: " << FixedGridCriterion<<endl << "ExtractionCriterion: " << ExtractionCriterion<<endl << "ConstraintCriterion: " << ConstraintCriterion<<endl << "criterion: " << criterion<<endl;
+        return criterion;
+    }
+
+    template <class data_t> 
+    void compute(Cell<data_t> current_cell) const
+    {
+        const Coordinates<data_t> coords(current_cell, m_dx, m_center);
+
+        //first run fixed grid
+        data_t FixedGridsTaggingCriterion { FixedGridTagging(current_cell) };
+
+        //then run Constrain tagging
+        data_t ConstraintTaggingCriterion { ConstraintTagging(current_cell) };
+
+        //then run Extraction tagging
+        data_t ExtractionTaggingCriterion { ExtractionTagging(current_cell) };
+
+        data_t maxFixedGridExtraction { simd_max(FixedGridsTaggingCriterion, ExtractionTaggingCriterion) };
+        data_t criterion { simd_max(maxFixedGridExtraction, ConstraintTaggingCriterion) };
 
         // Write back into the flattened Chombo box
-        current_cell.store_vars(FixedGridCriterion, 0);
+        current_cell.store_vars(criterion, 0);
     }
 };
 

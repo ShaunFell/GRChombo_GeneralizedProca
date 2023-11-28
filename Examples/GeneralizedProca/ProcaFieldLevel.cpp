@@ -173,7 +173,8 @@ void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &
 //things to do before tagging cells (e.g. filling ghosts)
 void ProcaFieldLevel::preTagCells()
 {
-    //fill all ghosts
+    CH_TIME("ProcaFieldLevel::preTagCells");
+/*     //fill all ghosts
     fillAllGhosts();
 
     //setup class instances
@@ -204,7 +205,7 @@ void ProcaFieldLevel::preTagCells()
         ExcisionDiagnostics(m_dx, m_p.center, m_p.inner_r, m_p.outer_r),
         m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
         disable_simd()
-    );
+    ); */
 
 };
 
@@ -214,20 +215,22 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                              const FArrayBox &current_state,
                                              const FArrayBox &current_state_diagnostics)
 {
-    /* BoxLoops::loop(
+    CH_TIME("ProcaFieldLevel::computeTaggingCriterion");
+/*     BoxLoops::loop(
         CustomTaggingCriterion(
-                                m_dx, m_level, 2.0*m_p.L, 
+                                m_dx, m_level, m_p.grid_scaling*m_p.L, 
+                                m_p.center,
                                 m_p.extraction_params, 
                                 m_p.activate_extraction,
                                 m_p.activate_gauss_tagging,
                                 m_p.activate_ham_tagging
                             ),
-        current_state, 
+        current_state_diagnostics, 
         tagging_criterion
     ); */
 
     BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level,
-                                                    2.0*m_p.L, m_p.center),
+                                                    m_p.grid_scaling*m_p.L, m_p.center),
                        current_state, tagging_criterion, disable_simd());
 }
 

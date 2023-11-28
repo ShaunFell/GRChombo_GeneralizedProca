@@ -70,26 +70,33 @@ public:
         const data_t kerrMass = m_paramsKerr.mass;
         const data_t kerrSpin = m_paramsKerr.spin;
         const data_t kerrSpin2 = kerrSpin*kerrSpin;
+        const data_t rP_QI = 1./4. * (kerrMass + sqrt(kerrMass*kerrMass - kerrSpin2));
+        const data_t rP_BL = 4. * rP_QI;
         const data_t coordZ = coords.z;
         const data_t rho = coords.get_radius(); //x^2 + y^2 + z^2
         const data_t rho2 = rho*rho; //r^2
 
         const data_t radial2 = 0.5*(rho2 - kerrSpin2)  + sqrt(0.25*(rho2-kerrSpin2)*(rho2-kerrSpin2) + kerrSpin2*coordZ*coordZ);
-        const data_t radius = sqrt(radial2);
+        const data_t radius = sqrt(radial2); //boyer-lindquist radial coordinate
+        
 
+        /* data_t quasi_istropic_radial = 1./4. * (2*radius - rP_BL + 2 * sqrt(radius * ( radius - rP_BL ) )); //quasi-isotropic radial coordinate  */
         data_t alpha = kerrMass*m_paramsPotential.mass;
-        data_t r0 = 1.0/(m_paramsPotential.mass*alpha); //peak of boson condensate
+        data_t r0 = 1.0/(m_paramsPotential.mass*alpha); //peak of boson condensate            
 
-        
-        
-        mattervars.Avec[0] = m_params.amplitude*pow(vars.chi, 3./2.)*exp(-radius/r0);
+        // if outside horizon, set initial data, else if inside, truncate to 0
+        mattervars.Avec[0] = simd_conditional( 
+                                simd_compare_gt(radius,rP_QI), 
+                                m_params.amplitude*pow(vars.chi, 3./2.)*exp(-radius/r0), 
+                                0. 
+                            );
         mattervars.Avec[1] = 0.;
         mattervars.Avec[2] = 0.;
         mattervars.phi = 0.;
         mattervars.Z = 0.;
         FOR1(i){
             mattervars.Evec[i] = 0.;
-        }
+        };
 
         current_cell.store_vars(mattervars);
 
