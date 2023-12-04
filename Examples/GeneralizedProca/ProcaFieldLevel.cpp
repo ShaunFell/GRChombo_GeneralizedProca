@@ -38,10 +38,10 @@
 #include "ExcisionEvolution.hpp"
 
 
-//do things at end of advance step, after RK4 calculation
+// do things at end of advance step, after RK4 calculation
 void ProcaFieldLevel::specificAdvance()
 {
-    //enforce trace free A_ij and positive chi and alpha
+    // enforce trace free A_ij and positive chi and alpha
     BoxLoops::loop(
         make_compute_pack(TraceARemoval(),
         PositiveChiAndAlpha(m_p.min_chi, m_p.min_lapse)),
@@ -49,7 +49,7 @@ void ProcaFieldLevel::specificAdvance()
 
     //check for nans
     if (m_p.nan_check){
-        BoxLoops::loop(NanCheck(m_bh_amr), m_state_new, m_state_new,
+        BoxLoops::loop(NanCheck(m_dx, "NaNCheck in specific Advance: "), m_state_new, m_state_new,
                         EXCLUDE_GHOST_CELLS, disable_simd());
     }
 };
@@ -73,9 +73,18 @@ void ProcaFieldLevel::initialData()
     fillAllGhosts();
     BoxLoops::loop(GammaCalculator(m_dx), m_state_new, m_state_new, EXCLUDE_GHOST_CELLS);
 
-    //check for nans in initial data
+    // make excision data zero
+    if (!m_p.excise_with_AH)
+    {
+        BoxLoops::loop(
+            ExcisionProcaEvolution<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
+            a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
+        );
+    }
+
+    // check for nans in initial data
     if (m_p.nan_check){
-        BoxLoops::loop(NanCheck(m_bh_amr), m_state_new, m_state_new,
+        BoxLoops::loop(NanCheck(m_dx, "NaNCheck in initial data: "), m_state_new, m_state_new,
                         EXCLUDE_GHOST_CELLS, disable_simd());
     }
 
@@ -85,7 +94,7 @@ void ProcaFieldLevel::initialData()
         Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
     );
-#endif //USE_AHFINDER
+#endif // USE_AHFINDER
 
 };
 
@@ -159,13 +168,12 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
             ExcisionProcaEvolution<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
             a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
         );
-    };
+    }
 };
 
-void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &a_rhs,
-                                Real a_dt)
+void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &a_rhs, Real a_dt)
 {
-    //Enforce trace free A_ij
+    // Enforce trace free A_ij
     BoxLoops::loop(TraceARemoval(), a_soln, a_soln, INCLUDE_GHOST_CELLS);
 };
 

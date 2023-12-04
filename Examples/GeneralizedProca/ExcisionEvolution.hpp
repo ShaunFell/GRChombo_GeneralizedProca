@@ -128,38 +128,39 @@ class ExcisionProcaEvolution
     using Vars = typename matter_t::template Vars<data_t>;
 
     protected:
-        const double m_dx; //grid spacing
-        const double m_excision_width;
-        const std::array<double, CH_SPACEDIM> m_center; //center of BH
+        const double m_dx; // grid spacing
+        const std::array<double, CH_SPACEDIM> m_center; // center of BH
+        const double m_excision_radius;
 
     public:
 
         //constructor
-        ExcisionProcaEvolution(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_excision_cut = 1): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_cut}
-        {
-        };
+        ExcisionProcaEvolution(const double a_dx, 
+                               const std::array<double, CH_SPACEDIM> a_center, 
+                               double a_excision_radius)
+            : m_dx{a_dx}, m_center{a_center}, m_excision_radius{a_excision_radius}
+        {}
 
         template <class data_t>
         void compute(const Cell<data_t> current_cell) const
         {
+            
             const Coordinates<data_t> coords(current_cell, m_dx, m_center);
 
-            Tensor<1,data_t> coords_BHCentered { coords.x - m_center[0], coords.y-m_center[1], coords.z - m_center[2] };
+            // the quasi isotropic Kerr radius
+            const double R = coords.get_radius();
 
-            data_t cell_radius_BHCentered { sqrt ( TensorAlgebra::compute_dot_product(coords_BHCentered, coords_BHCentered) ) };
-
-            data_t cell_Inside_Cutoff { simd_compare_lt(cell_radius_BHCentered, m_excision_width) };
-
-            if (cell_Inside_Cutoff)
+            bool excise = R < 0.9 * m_excision_radius
+            if (excise)
             {
-                //matter vars within excision zone
+                // matter vars within excision zone
                 Vars<data_t> rhs_vars;
                 VarsTools::assign(rhs_vars, 0.0);
 
-                //assign values of variables to cell
+                // assign values of variables to cell
                 current_cell.store_vars(rhs_vars);
 
-            } //excision
+            } // excision
 
         }//end of method def
 };//end of class def
