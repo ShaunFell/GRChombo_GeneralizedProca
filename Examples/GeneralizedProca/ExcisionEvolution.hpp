@@ -150,7 +150,7 @@ class ExcisionProcaEvolution
             // the quasi isotropic Kerr radius
             const double R = coords.get_radius();
 
-            bool excise = R < 0.9 * m_excision_radius
+            bool excise = R < 0.9 * m_excision_radius;
             if (excise)
             {
                 // matter vars within excision zone

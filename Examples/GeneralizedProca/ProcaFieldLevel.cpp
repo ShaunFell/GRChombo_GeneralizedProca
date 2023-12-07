@@ -78,7 +78,7 @@ void ProcaFieldLevel::initialData()
     {
         BoxLoops::loop(
             ExcisionProcaEvolution<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
-            a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
+            m_state_new, m_state_new, SKIP_GHOST_CELLS, disable_simd()
         );
     }
 
