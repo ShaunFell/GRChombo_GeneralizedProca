@@ -206,7 +206,7 @@ void ProcaField<potential_t>::add_matter_rhs(
     FOR2(i, j)
     {
         DA[i][j] = d1.Avec[j][i];
-        FOR1(k) { DA[i][j] += chris_phys[k][i][j] * vars.Avec[k]; }
+        FOR1(k) { DA[i][j] -= chris_phys[k][i][j] * vars.Avec[k]; }
     }
 
     // Extrinsic curvature
