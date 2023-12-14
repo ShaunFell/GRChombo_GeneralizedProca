@@ -53,42 +53,22 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
     }
 
     // antisymmetric tensor D_i A_j - D_j A_i
+    // the exterior derivative
     Tensor<2, data_t> DA_asym;
-    FOR2(i, j) { DA_asym[i][j] = DA[i][j] - DA[j][i]; }
-
-    // the Levi-Civita 3D symbol
-    auto LC_symbol = TensorAlgebra::epsilon();
-
-    // the epsilon tensor (3D volume form), indices DOWN and UP
-    // remember chi = det(gamma)^(-1/3)
-    // then eps = sqrt(det(gamma)) LC_symbol
-    // (gamma is the physical 3-metric, h the conformal one)
-    data_t sqrt_detgamma = pow(vars.chi, -3. / 2.);
-    Tensor<3, data_t> epsilon_LLL;
-    Tensor<3, data_t> epsilon_UUU;
-    FOR3(i, j, k)
-    {
-        epsilon_LLL[i][j][k] = sqrt_detgamma * LC_symbol[i][j][k];
-        epsilon_UUU[i][j][k] = (1. / sqrt_detgamma) * LC_symbol[i][j][k];
-    }
-
-    // TODO: maybe better to forget about the B field?
-
-    // B vector, index UP
-    Tensor<1, data_t> Bvec;
-    FOR1(i)
-    {
-        Bvec[i] = 0.0;
-        FOR2(j, k) { Bvec[i] += epsilon_UUU[i][j][k] * DA[j][k]; }
-    }
+    FOR2(i, j) { DA_asym[i][j] = d1.Avec[j][i] - d1.Avec[i][j]; }
 
     // electric field squared
     data_t Esq = 0.0;
     FOR2(i, j) { Esq += gamma_LL[i][j] * vars.Evec[i] * vars.Evec[j]; }
 
     // magnetic field squared
+    // B = eps^ijk D_j X_k
+    // B^i B_i = h^ab h^cd D_a X_c (D_b X_d - D_d X_b)
     data_t Bsq = 0.0;
-    FOR2(i, j) { Bsq += gamma_LL[i][j] * Bvec[i] * Bvec[j]; }
+    FOR4(a, b, c, d)
+    {
+        Bsq += gamma_UU[a][b] * gamma_UU[c][d] * DA[a][c] * DA_asym[b][d];
+    }
 
     // ### components of EM tensor ###
 
@@ -103,15 +83,18 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
     }
 
     // Eulerian stress S_ij
+    // h_ij (1/2) B^2 - B_i B_j = -h_ij (1/2) B^2
+    //      + h^ab DA_asym_ai DA_asym_bj
     FOR2(i, j)
     {
-        out.Sij[i][j] = gamma_LL[i][j] * (0.5 * Esq + 0.5 * Bsq) +
+        out.Sij[i][j] = gamma_LL[i][j] * (0.5 * Esq - 0.5 * Bsq) +
                         2 * dVdA * vars.Avec[i] * vars.Avec[j] -
                         gamma_LL[i][j] * V;
-        FOR2(m, n)
+        FOR2(a, b)
         {
-            out.Sij[i][j] -= gamma_LL[i][m] * gamma_LL[j][n] *
-                             (vars.Evec[m] * vars.Evec[n] + Bvec[m] * Bvec[n]);
+            out.Sij[i][j] -=
+                gamma_LL[i][a] * gamma_LL[j][b] * vars.Evec[a] * vars.Evec[b];
+            out.Sij[i][j] += gamma_UU[a][b] * DA_asym[a][i] * DA_asym[b][j];
         }
     }
 
@@ -191,8 +174,9 @@ void ProcaField<potential_t>::add_matter_rhs(
     }
 
     // antisymmetric tensor D_i A_j - D_j A_i
+    // the exterior derivative
     Tensor<2, data_t> DA_asym;
-    FOR2(i, j) { DA_asym[i][j] = DA[i][j] - DA[j][i]; }
+    FOR2(i, j) { DA_asym[i][j] = d1.Avec[j][i] - d1.Avec[i][j]; }
 
     // I also calculate the Christoffel LLL and LLU here
     Tensor<3, data_t> chris_phys_LLU;
@@ -268,9 +252,8 @@ void ProcaField<potential_t>::add_matter_rhs(
     }
 
     // evolution equation for auxiliary constraint-damping scalar field Z
-    total_rhs.Z =
-        vars.lapse * (2 * dVdA * vars.phi - m_params.vector_damping * vars.Z) +
-        advec.Z;
+    total_rhs.Z = vars.lapse * 2 * dVdA * vars.phi -
+                  vars.lapse * m_params.vector_damping * vars.Z + advec.Z;
     FOR1(i)
     {
         total_rhs.Z += vars.lapse * d1.Evec[i][i];
