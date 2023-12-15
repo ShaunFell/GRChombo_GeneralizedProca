@@ -18,7 +18,7 @@ nan_check = 1
 # Filesystem parameters
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/proca_mil_fra_vc_22943981"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/proca_single_fra_22944019"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -92,11 +92,11 @@ initial_proca_amplitude = 0.01
 # NB - if you have a non-cubic grid, you can specify 'N1' or 'N1_full',
 # 'N2' or 'N2_full' and 'N3' or 'N3_full' ( then dx_coarsest = L/N(max) )
 # NB - the N values need to be multiples of the block_factor
-N_full = 64
+N_full = 96
 L_full = 32
 
 # Maximum number of times you can regrid above coarsest level
-max_level = 3
+max_level = 2
 
 # Frequency of regridding at each level and thresholds on the tagging
 # Need one for each level except the top one, ie max_level items
@@ -111,7 +111,7 @@ regrid_interval   =  0 0 0 0 0
 
 # Max and min box sizes
 max_box_size = 16
-min_box_size = 16
+min_box_size = 8
 
 # for fixed grid tagging
 #tag_buffer_size = 8
