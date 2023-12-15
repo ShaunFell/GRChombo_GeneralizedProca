@@ -210,8 +210,13 @@ void ProcaField<potential_t>::add_matter_rhs(
 
         FOR1(a)
         {
+<<<<<<< HEAD
             DDA_asym[k][i][j] -= chris_phys_ULL[a][j][k] * DA_asym[i][a];
             DDA_asym[k][i][j] -= chris_phys_ULL[a][i][k] * DA_asym[a][j];
+=======
+            DDA_asym[k][i][j] -= chris_phys_ULL[a][j][k] * DA_asym[i][m];
+            DDA_asym[k][i][j] -= chris_phys_ULL[a][i][k] * DA_asym[m][j];
+>>>>>>> 0aace7bd8a72bf6facc39aff37803a2475bec42e
         }
     }
 
