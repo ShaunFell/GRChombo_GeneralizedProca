@@ -271,7 +271,7 @@ void ProcaField<potential_t>::add_matter_rhs(
         {
             total_rhs.phi -=
                 vars.lapse * gamma_UU[i][j] * acceleration[i] * vars.Avec[j];
-            total_rhs.phi += -lapse_gnn * dVdA * DA[i][j];
+            total_rhs.phi += -lapse_gnn * dVdA * gamma_UU[i][j] * DA[i][j];
             total_rhs.phi +=
                 -lapse_gnn * (-4. * dVddA * vars.phi * gamma_UU[i][j] *
                               vars.Avec[i] * d1.phi[j]);
