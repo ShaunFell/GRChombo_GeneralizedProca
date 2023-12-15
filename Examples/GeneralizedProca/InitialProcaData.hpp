@@ -73,7 +73,6 @@ class InitialProcaData : public KerrBH
 
         // the quasi-isotropic radius as coordinates used in KerrBH class
         const data_t r = coords.get_radius();
-        const data_t r2 = rho * rho;
 
         data_t alpha = kerrMass * m_paramsPotential.mass;
         data_t r0 =
