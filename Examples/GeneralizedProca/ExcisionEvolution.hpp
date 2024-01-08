@@ -144,11 +144,13 @@ class ExcisionProcaEvolution
         {
             const Coordinates<data_t> coords(current_cell, m_dx, m_center);
 
-            Tensor<1,data_t> coords_BHCentered { coords.x - m_center[0], coords.y-m_center[1], coords.z - m_center[2] };
+            //Next line is probably a bug. Coordinates should already be black hole-centered
+            //Tensor<1,data_t> coords_BHCentered { coords.x - m_center[0], coords.y-m_center[1], coords.z - m_center[2] };
 
-            data_t cell_radius_BHCentered { sqrt ( TensorAlgebra::compute_dot_product(coords_BHCentered, coords_BHCentered) ) };
+            //data_t cell_radius_BHCentered { sqrt ( TensorAlgebra::compute_dot_product(coords_BHCentered, coords_BHCentered) ) };
+            data_t cell_radius_BHCentered { coords.get_radius() };
 
-            data_t cell_Inside_Cutoff { simd_compare_lt(cell_radius_BHCentered, m_excision_width) };
+            data_t cell_Inside_Cutoff { (double)simd_compare_lt(cell_radius_BHCentered, m_excision_width) };
 
             if (cell_Inside_Cutoff)
             {
