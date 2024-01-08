@@ -155,6 +155,7 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
 
     if (!m_p.excise_with_AH)
     {
+        pout() << "Running non-dynamical excision" << endl;
         BoxLoops::loop(
             ExcisionProcaEvolution<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
             a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
