@@ -71,8 +71,8 @@ class SimulationParameters : public SimulationParametersBase
         warn_parameter("kerr_mass", kerr_params.mass, kerr_params.mass >= 0.0,
                        "should be >= 0.0");
 
-        warn_parameter("inner_r", inner_r, inner_r == 0.0, " is set to default parameters (0.0)");
-        warn_parameter("outer_r", outer_r, outer_r == 200.0, " is set to default parameter (200.0)")
+        warn_parameter("inner_r", inner_r, inner_r != 0.0, "set to default parameters (0.0)");
+        warn_parameter("outer_r", outer_r, outer_r != 200.0, "set to default parameter (200.0)");
 
         check_parameter("kerr_spin", kerr_params.spin,
                         std::abs(kerr_params.spin) <= kerr_params.mass,
