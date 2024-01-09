@@ -7,7 +7,7 @@
 verbosity = 3
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/GRChombo_Proca_23007681"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/GRChombo_Proca_23019857"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -38,10 +38,10 @@ print_progress_only_to_rank_0 = 1
 activate_ham_tagging = 0
 activate_gauss_tagging = 0
 
-max_level = 7
+max_level = 6
 
 # using fixed grid right now. Uncomment when using Constraint tagging!!
-regrid_interval   =  0 0 0 0 0 0 0
+regrid_interval   =  0 0 0 0 0 0
 #regrid_threshold = 0.005
 
 
@@ -63,7 +63,7 @@ kerr_spindir = 0 0 1 #along z-axis
 proca_damping = 1
 
 # Potential parameters
-proca_mass = 0.5
+proca_mass = 0.4
 proca_self_interaction = 0.
 
 #Initial condition parameters
@@ -89,7 +89,7 @@ grid_buffer_size = 8
 # center = 256.0 256.0 256.0 # defaults to center of the grid
 
 #global scaling of refinement levels. Larger value equals larger refinement levels
-grid_scaling = 10.0
+grid_scaling = 5.0
 
 ################################################## Boundary Conditions parameters
 ##################################################

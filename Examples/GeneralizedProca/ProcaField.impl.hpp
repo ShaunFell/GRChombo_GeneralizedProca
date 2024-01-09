@@ -218,7 +218,7 @@ void ProcaField<potential_t>::add_matter_rhs(
     data_t gnn{dVdA - 2.0 * dVddA * vars.phi * vars.phi};
     data_t mass{m_potential.m_params.mass};
 
-    total_rhs.phi = -vars.lapse * vars.Z * mass * mass / (2 * gnn) +
+    total_rhs.phi = vars.lapse * vars.Z * mass * mass / (2 * gnn) +
                     vars.lapse * dVdA * vars.phi * vars.K / (gnn) + advec.phi;
     FOR1(i)
     {
@@ -229,16 +229,16 @@ void ProcaField<potential_t>::add_matter_rhs(
         {
             total_rhs.phi +=
                 gamma_UU[i][j] * (-vars.lapse * dVdA / gnn * DA[i][j] -
-                                  dVdA / gnn * vars.Avec[i] * d1.lapse[j] +
+                                  vars.Avec[i] * d1.lapse[j] +
                                   2 * vars.lapse * dVddA / gnn * 2 * vars.phi *
                                       vars.Avec[i] * d1.phi[j]);
 
             FOR2(k, l)
             {
-                total_rhs.phi +=
+                total_rhs.phi -=
                     gamma_UU[i][k] * gamma_UU[j][l] *
                     (2 * vars.lapse * dVddA / gnn * vars.phi * vars.Avec[i] *
-                         vars.Avec[j] * ExCurv[k][l] -
+                         vars.Avec[j] * ExCurv[k][l] +
                      2 * vars.lapse * dVddA / gnn * vars.Avec[i] *
                          vars.Avec[j] * DA[k][l]);
             }
