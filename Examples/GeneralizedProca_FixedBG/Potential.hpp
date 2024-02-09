@@ -5,9 +5,6 @@
 #include "Tensor.hpp" //for tensorial objects
 
 
-//Remove these after debugging
-#include "DebuggingTools.hpp"
-
 class ProcaPotential{
     public:
         struct params_t{
@@ -42,10 +39,9 @@ class ProcaPotential{
         // V = mu^2 /2 * A^2 + lambda*mu^2/4 * A^4
         // dVdA = mu^2/2 + lambda*mu^2/2 * A^2
         // dVddA = lambda*mu^2/2
-        data_t potPrefactor {pow(m_params.mass,2.0)/2.0  };
-        V =  potPrefactor * (Asquared + 2.0 * lambda * Asquared * Asquared);
-        dVdA = potPrefactor * ( 1.0 + 4.0*lambda*Asquared);
-        dVddA = potPrefactor * 4.0 * lambda;
+        V = pow(m_params.mass,2.0)/2.0 * Asquared + lambda*pow(m_params.mass,2.0)/4.0 * Asquared*Asquared;
+        dVdA = pow(m_params.mass, 2.0)/2.0 * ( 1.0 + lambda*Asquared);
+        dVddA = pow(m_params.mass, 2.0)/2.0 * lambda;
 
     //################################################################################
 #ifdef EQUATION_DEBUG_MODE

@@ -7,19 +7,20 @@
 #define SIMULATIONPARAMETERS_HPP_
 
 // General includes
+#include "ChomboParameters.hpp"
 #include "GRParmParse.hpp"
-#include "SimulationParametersBase.hpp"
+/* #include "SimulationParametersBase.hpp" */
 
 // Problem specific includes:
-#include "KerrBH.hpp"
+#include "KerrSchild.hpp"
 #include "Potential.hpp"
 #include "ProcaField.hpp"
 #include "InitialProcaData.hpp"
 
-class SimulationParameters : public SimulationParametersBase
+class SimulationParameters : public ChomboParameters
 {
   public:
-    SimulationParameters(GRParmParse &pp) : SimulationParametersBase(pp)
+    SimulationParameters(GRParmParse &pp) : ChomboParameters(pp)
     {
         read_params(pp);
         check_params();
@@ -28,6 +29,8 @@ class SimulationParameters : public SimulationParametersBase
     /// Read parameters from the parameter file
     void read_params(GRParmParse &pp)
     {
+        //filenames
+        pp.load("integrals_filename", integrals_filename);
 
         // Initial Kerr data
         pp.load("kerr_mass", kerr_params.mass);
@@ -58,9 +61,10 @@ class SimulationParameters : public SimulationParametersBase
 
         //grid parameters
         pp.load("grid_scaling", grid_scaling, 1.);
+        pp.load("nan_check", nan_check, 1);
+        pp.load("sigma", sigma, 0.1);
 
         //AH Finder
-
         pp.load("AH_initial_guess", AH_initial_guess, 0.5*kerr_params.mass);
         pp.load("excision_with_AH", excise_with_AH, false);
     }
@@ -94,8 +98,11 @@ class SimulationParameters : public SimulationParametersBase
     }
 
     double G_Newton, outer_r, inner_r;
+    double sigma;
+    int nan_check;
+    std::string integrals_filename;
 
-    KerrBH::params_t kerr_params;
+    KerrSchild::params_t kerr_params;
     ProcaPotential::params_t potential_params;
     ProcaField<ProcaPotential>::params_t proca_params;
     InitialProcaData::init_params_t initialdata_params;
