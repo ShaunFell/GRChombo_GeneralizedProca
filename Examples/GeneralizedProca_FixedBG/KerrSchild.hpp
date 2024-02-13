@@ -26,6 +26,8 @@ class KerrSchild
         double mass = 1.0;                      //!<< The mass of the BH
         std::array<double, CH_SPACEDIM> center; //!< The center of the BH
         double spin = 0.0;                      //!< The spin param a = J / M
+        std::array<double, CH_SPACEDIM> spin_direction = {
+            0., 0., 1.}; // default to 'z' axis; doesn't need to be normalized
 
     };
 
@@ -53,10 +55,18 @@ class KerrSchild
     template <class data_t>
     void compute(const Cell<data_t> &current_cell) const
     {
-        const Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
         Vars<data_t> metric_vars;
         VarsTools::assign(metric_vars, 0.); // Initialize all to zero
 
+        compute_background(metric_vars, current_cell);
+
+        current_cell.store_vars(metric_vars);
+    }
+
+    template <class data_t>
+    void compute_background(Vars<data_t> &metric_vars, const Cell<data_t> &current_cell) const
+   {
+        const Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
 
         // black hole params - mass M and spin a
         const double M = m_params.mass;
@@ -201,8 +211,6 @@ class KerrSchild
             d1_h[i][j][k] = d1_chi[k] * gamma[i][j] + metric_vars.chi * d1_gamma[i][j][k];
         }
         
-
-        current_cell.store_vars(metric_vars);
     }
 
   protected:

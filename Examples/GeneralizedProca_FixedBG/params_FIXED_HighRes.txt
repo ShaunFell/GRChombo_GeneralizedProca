@@ -7,7 +7,7 @@
 verbosity = 3
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/testing/Fixed_GRChombo_Proca_23135302"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/TEST"
 chk_prefix = GeneralizedProcaFixed_
 plot_prefix = GeneralizedProcaFixedp_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -18,8 +18,8 @@ checkpoint_interval = 1
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 1
-num_plot_vars = 6
-plot_vars = chi Gauss Asquared Z rho rhoJ
+num_plot_vars = 7
+plot_vars = chi Gauss Asquared Z rho rhoJ rhoE
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -39,10 +39,10 @@ print_progress_only_to_rank_0 = 1
 activate_ham_tagging = 0
 activate_gauss_tagging = 0
 
-max_level = 5
+max_level = 7
 
 # using fixed grid right now. Uncomment when using Constraint tagging!!
-regrid_interval   =  0 0 0 0 0
+regrid_interval   =  0 0 0 0 0 0 0
 #regrid_threshold = 0.005
 
 
@@ -59,12 +59,15 @@ kerr_spin = 0.99
 kerr_center = 64 64 64 # defauts to center
 kerr_spindir = 0 0 1 #along z-axis
 
+KerrSchild = 0 #Use kerr schild background
+KerrQI = 1 #Use quasi-isotropic background
+
 
 # Proca parameters
 proca_damping = 1.0
 
 # Potential parameters
-proca_mass = 0.5
+proca_mass = 0.3
 proca_self_interaction = 0.
 
 #Initial condition parameters

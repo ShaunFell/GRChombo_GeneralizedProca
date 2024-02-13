@@ -17,35 +17,41 @@
 
 //! Does excision for fixed BG BH solutions
 //! Note that it is does not using simd so one must set disable_simd()
+template <class background_t>
 class ExcisionDiagnostics
 {
   protected:
-    const double m_dx;                              //!< The grid spacing
-    const std::array<double, CH_SPACEDIM> m_center; //!< The BH center
-    const double m_inner_r;
-    const double m_outer_r;
+        const double m_dx; //grid spacing
+        const double m_excision_width;
+        const std::array<double, CH_SPACEDIM> m_center; //center of BH
+        
+        background_t m_background;
 
   public:
-    ExcisionDiagnostics(const double a_dx,
-                        const std::array<double, CH_SPACEDIM> a_center,
-                        const double a_inner_r, const double a_outer_r)
-        : m_dx(a_dx), m_center(a_center), m_inner_r(a_inner_r),
-          m_outer_r(a_outer_r)
-    {
-    }
 
-    void compute(const Cell<double> current_cell) const
-    {
-        const Coordinates<double> coords(current_cell, m_dx, m_center);
-        if ((coords.get_radius() < m_inner_r) ||
-            (coords.get_radius() > m_outer_r))
+        //constructor
+        ExcisionDiagnostics(background_t a_background, const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_excision_cut = 1): m_background{a_background}, m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_cut}
         {
-            current_cell.store_vars(0.0, c_gauss);
-            current_cell.store_vars(0.0, c_Asquared);
-            current_cell.store_vars(0.0, c_gnn);
-            current_cell.store_vars(0.0, c_Ham);
-        } // else do nothing
-    }
+        };
+
+        template <class data_t>
+        void compute(const Cell<data_t> current_cell) const
+        {
+            data_t horizon_distance { m_background.excise(current_cell) };
+
+            data_t cell_Inside_Cutoff { (double)simd_compare_lt(horizon_distance, 1.0) };
+
+            if (cell_Inside_Cutoff)
+            {
+              current_cell.store_vars(0.0, c_gauss);
+              current_cell.store_vars(0.0, c_Asquared);
+              current_cell.store_vars(0.0, c_gnn);
+              current_cell.store_vars(0.0, c_Ham);
+
+            } //excision
+
+        }//end of method def
+
 };
 
 #endif /* EXCISIONDIAGNOSTICS_HPP_ */

@@ -81,10 +81,12 @@ void ProcaFieldLevel::initialData()
 
 #ifdef USE_AHFINDER
     //apparently this is needed for the AHFinder
-    BoxLoops::loop(
-        Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
-        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
-    );
+    if (m_p.AH_activate) {
+        BoxLoops::loop(
+            Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
+            m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
+        );
+    };
 #endif //USE_AHFINDER
 
 };
@@ -99,6 +101,7 @@ void ProcaFieldLevel::prePlotLevel()
     ProcaConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
     EffectiveMetric<ProcaPotential> proca_eff_met(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
     ProcaSquared Asquared(m_dx);
+    EnergyAndAngularMomentum<ProcaFieldWithPotential> EM(m_dx, proca_field, m_p.center);
 
     //compute diagnostics on each cell of current level
     BoxLoops::loop(
@@ -112,23 +115,24 @@ void ProcaFieldLevel::prePlotLevel()
                                                         ),
             Asquared,
             proca_constraint,
-            proca_eff_met
+            proca_eff_met,
+            EM
             ),
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
     
-#ifdef USE_AHFINDER
-    //already calculated in specific PostTimeStep
-    if(m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time)){
-        return;
-    }
-#endif //USE_AHFINDER
-
     BoxLoops::loop(
-        ExcisionDiagnostics(m_dx, m_p.center, m_p.inner_r, m_p.outer_r),
+        ExcisionDiagnostics<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
         m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
         disable_simd()
     );
+
+    #ifdef USE_AHFINDER
+    //already calculated in specific PostTimeStep
+    if(m_p.AH_activate && m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time)){
+        return;
+    }
+    #endif //USE_AHFINDER
 };
 #endif //CH_USE_HDF5
 
@@ -143,6 +147,8 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     );
 
     //Calculate MatterCCZ4 right hand side with matter_t = ProcaField
+
+    //Moving puncture gauge to handle spacetime singularites
     ProcaPotential potential(m_p.potential_params);
     ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
     if (m_p.max_spatial_derivative_order == 4){
@@ -155,7 +161,6 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
 
     if (!m_p.excise_with_AH)
     {
-        pout() << "Running non-dynamical excision" << endl;
         BoxLoops::loop(
             ExcisionProcaEvolution<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
             a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
@@ -175,38 +180,44 @@ void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &
 void ProcaFieldLevel::preTagCells()
 {
     CH_TIME("ProcaFieldLevel::preTagCells");
-/*     //fill all ghosts
-    fillAllGhosts();
 
-    //setup class instances
-    ProcaPotential potential(m_p.potential_params);
-    ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
-    ProcaConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
+    if (m_p.activate_gauss_tagging || m_p.activate_ham_tagging)
+    {
 
-    //compute Hamiltonian and Guass diagnostics on each cell of current level as these are required for tagging
-    BoxLoops::loop(
-        make_compute_pack(
-            MatterConstraints<ProcaFieldWithPotential>(proca_field, 
-                                                        m_dx, m_p.G_Newton, 
-                                                        c_Ham, 
-                                                        Interval(c_Mom1, c_Mom3),
-                                                        c_Ham_abs_sum,
-                                                        Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
-                                                        ),
-            ProcaConstraint<ProcaPotential>(m_dx, 
-                                            m_p.potential_params.mass, 
-                                            m_p.proca_params.vector_damping, 
-                                            potential)
-            ),
-        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
-        );
-    
-    //excise diagnostics according to parameters set in parameter file
-    BoxLoops::loop(
-        ExcisionDiagnostics(m_dx, m_p.center, m_p.inner_r, m_p.outer_r),
-        m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-        disable_simd()
-    ); */
+        //fill all ghosts
+        fillAllGhosts();
+
+        //setup class instances
+        ProcaPotential potential(m_p.potential_params);
+        ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
+        ProcaConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
+
+
+        //compute Hamiltonian and Guass diagnostics on each cell of current level as these are required for tagging
+        BoxLoops::loop(
+            make_compute_pack(
+                MatterConstraints<ProcaFieldWithPotential>(proca_field, 
+                                                            m_dx, m_p.G_Newton, 
+                                                            c_Ham, 
+                                                            Interval(c_Mom1, c_Mom3),
+                                                            c_Ham_abs_sum,
+                                                            Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
+                                                            ),
+                ProcaConstraint<ProcaPotential>(m_dx, 
+                                                m_p.potential_params.mass, 
+                                                m_p.proca_params.vector_damping, 
+                                                potential)
+                ),
+            m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
+            );
+        
+        //excise diagnostics according to parameters set in parameter file
+        BoxLoops::loop(
+            ExcisionDiagnostics<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
+            m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+            disable_simd()
+        ); 
+    };
 
 };
 
@@ -217,22 +228,26 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                              const FArrayBox &current_state_diagnostics)
 {
     CH_TIME("ProcaFieldLevel::computeTaggingCriterion");
-/*     BoxLoops::loop(
-        CustomTaggingCriterion(
-                                m_dx, m_level, m_p.grid_scaling*m_p.L, 
-                                m_p.center,
-                                m_p.extraction_params, 
-                                m_p.activate_extraction,
-                                m_p.activate_gauss_tagging,
-                                m_p.activate_ham_tagging
-                            ),
-        current_state_diagnostics, 
-        tagging_criterion
-    ); */
 
-    BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level,
+    if (m_p.activate_gauss_tagging || m_p.activate_ham_tagging) {
+        BoxLoops::loop(
+            CustomTaggingCriterion(
+                                    m_dx, m_level, m_p.grid_scaling*m_p.L, 
+                                    m_p.center,
+                                    m_p.extraction_params, 
+                                    m_p.activate_extraction,
+                                    m_p.activate_gauss_tagging,
+                                    m_p.activate_ham_tagging
+                                ),
+            current_state_diagnostics, 
+            tagging_criterion
+        ); 
+    } else {
+        BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level,
                                                     m_p.grid_scaling*m_p.L, m_p.center),
                        current_state, tagging_criterion, disable_simd());
+    };
+    
 }
 
 
@@ -296,8 +311,7 @@ void ProcaFieldLevel::specificPostTimeStep()
 
             //excise within horizon
             BoxLoops::loop(
-                ExcisionDiagnostics(m_dx, m_p.center, 
-                    0.0,m_p.extraction_params.extraction_radii[1]),
+                ExcisionDiagnostics<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
                 m_state_diagnostics, 
                 m_state_diagnostics,
                 SKIP_GHOST_CELLS,

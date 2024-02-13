@@ -38,7 +38,6 @@ class ExcisionProcaEvolution
         template <class data_t>
         void compute(const Cell<data_t> current_cell) const
         {
-            const Coordinates<data_t> coords(current_cell, m_dx, m_center);
             Vars<data_t> rhs_vars;
 
             data_t horizon_distance { m_background.excise(current_cell) };

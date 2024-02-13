@@ -2,6 +2,7 @@
 #define DIAGNOSTIC_H_INCLUDED
 
 #include "CCZ4Geometry.hpp"
+#include "CCZ4Vars.hpp"
 #include "ProcaField.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "Potential.hpp"
@@ -87,18 +88,14 @@ class ProcaSquared
         void compute(Cell<data_t> current_cell) const;
 };
 
-template <class potential_t, class matter_t>
+template <class matter_t>
 class EnergyAndAngularMomentum
 {
     protected:
 
-        //extract all grid variables
+        //typedef all grid variables
         template <class data_t>
         using Vars = typename MatterCCZ4<ProcaField<ProcaPotential>>::template Vars<data_t>;
-
-        //extract only matter field variables
-        template<class data_t>
-        using MatterVars = ProcaField<ProcaPotential>::template Vars<data_t>;
 
         const matter_t m_matter;
         const double m_dx;

@@ -63,6 +63,7 @@ class SimulationParameters : public SimulationParametersBase
 
         pp.load("AH_initial_guess", AH_initial_guess, 0.5*kerr_params.mass);
         pp.load("excision_with_AH", excise_with_AH, false);
+        pp.load("AH_activate", AH_activate, false);
     }
 
     void check_params()

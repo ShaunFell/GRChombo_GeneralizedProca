@@ -13,105 +13,142 @@
 #include "Potential.hpp"
 #include "KerrSchild.hpp"
 
-class InitialProcaData: public KerrSchild
-{
-public:
 
-    //typename all variables, ADM variables + Matter
-    template <class data_t>
-    using MetricVars = ADMVars::template Vars<data_t>;
-    
-    //typename only matter variables
-    template <class data_t>
-    using MatterVars = typename ProcaField<ProcaPotential>::template Vars<data_t>;
-
-    struct init_params_t
+struct init_params_t
     {
         double amplitude;
     };
 
-    using PotentialParams = ProcaPotential::params_t;
-    using KerrParams = KerrSchild::params_t;
+template <class background_t>
+class InitialProcaData: public background_t
+{
+    public:
 
-protected:
-    double m_dx;
-    const init_params_t m_params;
-    const PotentialParams m_paramsPotential;
-    const KerrParams m_paramsKerr;
-
-public:
-    
-    //constructor
-    InitialProcaData(init_params_t a_params, PotentialParams b_params, KerrParams c_params, double a_dx): 
-        KerrSchild(c_params, a_dx), m_dx{a_dx}, m_params{a_params}, m_paramsPotential{b_params}, m_paramsKerr{c_params}
-    {
-    };
-
-    template <class data_t>
-    void compute(Cell<data_t> current_cell) const
-    {
-        //based off the initial conditions used in    http://arxiv.org/abs/1705.01544
-
-        //location of cell
-        Coordinates<data_t> coords(current_cell, m_dx, m_paramsKerr.center);
+        //typename all variables, ADM variables + Matter
+        template <class data_t>
+        using MetricVars = ADMVars::template Vars<data_t>;
         
-        //load kerr variables
-        const auto metric_vars = current_cell.template load_vars<MetricVars>();
+        //typename only matter variables
+        template <class data_t>
+        using MatterVars = typename ProcaField<ProcaPotential>::template Vars<data_t>;
+
+
+        using PotentialParams = ProcaPotential::params_t;
         
-        //flush all variables on cell
-        MatterVars<data_t> mattervars;
-        VarsTools::assign(mattervars,0.);
+        using KerrParams = typename background_t::params_t;
+
+    protected:
+        double m_dx;
+        const init_params_t m_params;
+        const PotentialParams m_paramsPotential;
+        const KerrParams m_paramsKerr;
+
+    public:
         
-        const data_t kerrMass = m_paramsKerr.mass;
-        const data_t kerrSpin = m_paramsKerr.spin;
-        const data_t kerrSpin2 = kerrSpin*kerrSpin;      
-        const data_t rP_QI = 1./4. * (kerrMass + sqrt(kerrMass*kerrMass - kerrSpin2));
-        const data_t rP_BL = 4. * rP_QI; 
-        const data_t rho = coords.get_radius(); //x^2 + y^2 + z^2
-
-        //convert the quasi-isotropic radial coordinate to boyer-lindquist
-        auto QI_to_BL {
-            [rP_BL] (data_t r) {
-                return r * (1 + rP_BL/(4*r)) * (1 + rP_BL/(4*r));
-            }
-        };
-        const data_t r_BL { QI_to_BL(rho) };
-        const data_t sinTheta_BL { sqrt(coords.x*coords.x + coords.y*coords.y) / rho };
-        const data_t cosTheta_BL { coords.z / rho };
-/*         const data_t sinPhi_BL { coords.y / sqrt(coords.x * coords.x + coords.y * coords.y) };
-        const data_t cosPhi_BL { coords.x / sqrt(coords.x * coords.x + coords.y * coords.y) };
-        const data_t x_BL { r_BL * cosPhi_BL * sinTheta_BL };
-        const data_t y_BL { r_BL * sinPhi_BL * sinTheta_BL };
-        const data_t z_BL { r_BL * cosTheta_BL }; */
-
-        data_t detGamma_BL { ( pow( (r_BL*r_BL + kerrSpin2*cosTheta_BL*cosTheta_BL) ,2. ) * sinTheta_BL*sinTheta_BL * 
-                                ( r_BL*r_BL + kerrSpin2 + ( 2*r_BL*kerrSpin2*kerrMass*sinTheta_BL*sinTheta_BL ) / (r_BL*r_BL + kerrSpin2*cosTheta_BL*cosTheta_BL) )
-                            ) / (r_BL*r_BL + kerrSpin2 - 2*r_BL*kerrMass)
-         };
-        data_t conformalFactor_BL { pow(detGamma_BL, -1.0/3.0) };
-
-
-
-        data_t alpha = kerrMass*m_paramsPotential.mass;
-        data_t r0_BL { 1.0/(m_paramsPotential.mass*alpha) };
-
-
-        mattervars.Avec[0] = m_params.amplitude*pow(metric_vars.chi, 3./2.)*exp(-rho/r0_BL);
-        mattervars.Avec[1] = 0.;
-        mattervars.Avec[2] = 0.;
-        mattervars.phi = 0.;
-        mattervars.Z = 0.;
-        FOR1(i){
-            mattervars.Evec[i] = 0.;
+        //constructor
+        InitialProcaData(init_params_t a_params, PotentialParams b_params, KerrParams c_params, double a_dx): 
+            background_t(c_params, a_dx), m_dx{a_dx}, m_params{a_params}, m_paramsPotential{b_params}, m_paramsKerr{c_params}
+        {
         };
 
-        current_cell.store_vars(mattervars);
-
-    };
-
+        template <class data_t>
+        void compute(Cell<data_t> current_cell) const;
 };
 
 
+//specialization
+template <>
+template <class data_t>
+void InitialProcaData<KerrSchild>::compute(Cell<data_t> current_cell) const
+{
+    //based off the initial conditions used in    http://arxiv.org/abs/1705.01544
+
+    //location of cell
+    Coordinates<data_t> coords(current_cell, m_dx, m_paramsKerr.center);
+    
+    //load variables from already calculated kerr black hole (See ProcaFieldLevel.cpp::59)
+    const MetricVars<data_t> metricvars = current_cell.template load_vars<MetricVars>();
+    
+    //flush all variables on cell
+    MatterVars<data_t> mattervars;
+    VarsTools::assign(mattervars,0.);
+    
+    const data_t kerrMass = m_paramsKerr.mass;
+    const data_t kerrSpin = m_paramsKerr.spin;
+    const data_t kerrSpin2 = kerrSpin*kerrSpin;      
+    const data_t rP_QI = 1./4. * (kerrMass + sqrt(kerrMass*kerrMass - kerrSpin2));
+    const data_t rP_BL = 4. * rP_QI; 
+    const data_t rho = coords.get_radius(); //x^2 + y^2 + z^2
+    const data_t coords_x = coords.x;
+    const data_t coords_y = coords.y;
+    const data_t coords_z = coords.z;
+    const data_t rho2 = coords.get_radius() * coords.get_radius();
+
+
+    // the Kerr Schild radius r
+    const data_t r2 = 0.5 * (rho2 - kerrSpin2) +
+                        sqrt(0.25 * (rho2 - kerrSpin2) * (rho2 - kerrSpin2) + kerrSpin2 * coords_z*coords_z);
+    const data_t radius = sqrt(r2);
+
+    data_t alpha = kerrMass*m_paramsPotential.mass;
+    data_t r0_BL { 1.0/(m_paramsPotential.mass*alpha) };
+
+
+    mattervars.Avec[0] = m_params.amplitude*pow(metricvars.chi, 3.)*exp(-radius/r0_BL);
+    mattervars.Avec[1] = 0.;
+    mattervars.Avec[2] = 0.;
+    mattervars.phi = 0.;
+    mattervars.Z = 0.;
+    FOR1(i){
+        mattervars.Evec[i] = 0.;
+    };
+
+    current_cell.store_vars(mattervars);
+};
+
+template<>
+template <class data_t>
+void InitialProcaData<KerrQI>::compute(Cell<data_t> current_cell) const
+{
+    //based off the initial conditions used in    http://arxiv.org/abs/1705.01544
+
+    //location of cell
+    Coordinates<data_t> coords(current_cell, m_dx, m_paramsKerr.center);
+    
+    //load variables from already calculated kerr black hole (See ProcaFieldLevel.cpp::59)
+    const auto vars = current_cell.template load_vars<Vars>();
+    
+    //flush all variables on cell
+    MatterVars<data_t> mattervars;
+    VarsTools::assign(mattervars,0.);
+    
+    const data_t kerrMass = m_paramsKerr.mass;
+    const data_t kerrSpin = m_paramsKerr.spin;
+    const data_t kerrSpin2 = kerrSpin*kerrSpin;      
+    const data_t rP_BL = kerrMass * (1 + sqrt(1 - kerrSpin2));
+    const data_t rho = coords.get_radius(); //x^2 + y^2 + z^2
+
+
+    //Use relation for quasi-isotropic coords to boyer-lindquist
+    const data_t r_BL = rho * ( 1 + rP_BL/(4 * rho )) *  ( 1 + rP_BL/(4 * rho ));
+
+
+    data_t alpha = kerrMass*m_paramsPotential.mass;
+    data_t r0_BL { 1.0/(m_paramsPotential.mass*alpha) };
+
+    // if outside horizon, set initial data, else if inside, truncate to 0
+    mattervars.Avec[0] = m_params.amplitude*pow(vars.chi, 3.)*exp(-r_BL/r0_BL);
+    mattervars.Avec[1] = 0.;
+    mattervars.Avec[2] = 0.;
+    mattervars.phi = 0.;
+    mattervars.Z = 0.;
+    FOR1(i){
+        mattervars.Evec[i] = 0.;
+    };
+
+    current_cell.store_vars(mattervars);
+
+};
 
 
 

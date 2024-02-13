@@ -42,7 +42,7 @@ class ProcaPotential{
         // V = mu^2 /2 * A^2 + lambda*mu^2/4 * A^4
         // dVdA = mu^2/2 + lambda*mu^2/2 * A^2
         // dVddA = lambda*mu^2/2
-        data_t potPrefactor {pow(m_params.mass,2.0)/2.0  };
+        data_t potPrefactor {pow(m_params.mass,2.0)  };
         V =  potPrefactor * (Asquared + 2.0 * lambda * Asquared * Asquared);
         dVdA = potPrefactor * ( 1.0 + 4.0*lambda*Asquared);
         dVddA = potPrefactor * 4.0 * lambda;

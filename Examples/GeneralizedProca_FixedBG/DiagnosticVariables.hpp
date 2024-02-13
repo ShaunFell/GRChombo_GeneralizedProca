@@ -32,6 +32,7 @@ enum
 
     c_rho,
     c_rhoJ,
+    c_rhoE,
 
 
     NUM_DIAGNOSTIC_VARS
@@ -52,7 +53,7 @@ static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
     
     "Gauss", "Asquared", "gnn", "g", "Z",
     
-    "rho", "rhoJ"
+    "rho", "rhoJ", "rhoE"
     };
 }
 

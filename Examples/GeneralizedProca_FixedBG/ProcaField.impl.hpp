@@ -147,6 +147,25 @@ void ProcaField<potential_t>::add_matter_rhs(
     data_t dVdA{0.};
     data_t dVddA{0.};
     m_potential.compute_potential(V, dVdA, dVddA, matter_vars, gamma_UU);
+      
+        // covariant derivative of spatial part of Proca field
+    Tensor<2, data_t> DA;
+    FOR2(i, j)
+    {
+        DA[i][j] = d1.Avec[j][i];
+        FOR1(k) { DA[i][j] -= chris_phys[k][i][j] * matter_vars.Avec[k]; }
+    }
+
+    // Extrinsic curvature
+    Tensor<2, data_t> ExCurv;
+    FOR2(i, j)
+    {
+        ExCurv[i][j] =
+            (1. / metric_vars.chi) * (metric_vars.A[i][j] + 1. / 3. * metric_vars.h[i][j] * metric_vars.K);
+    }
+
+    data_t gnn{dVdA - 2.0 * dVddA * matter_vars.phi * matter_vars.phi};
+    data_t mass{m_potential.m_params.mass};
 
     // evolution equations for spatial part of vector field (index down)
     FOR1(i)
@@ -203,27 +222,7 @@ void ProcaField<potential_t>::add_matter_rhs(
         }
     }
 
-    // covariant derivative of spatial part of Proca field
-    Tensor<2, data_t> DA;
-    FOR2(i, j)
-    {
-        DA[i][j] = d1.Avec[j][i];
-        FOR1(k) { DA[i][j] -= chris_phys[k][i][j] * matter_vars.Avec[k]; }
-    }
-
-    // Extrinsic curvature
-    Tensor<2, data_t> ExCurv;
-    FOR2(i, j)
-    {
-        ExCurv[i][j] =
-            (1. / metric_vars.chi) * (metric_vars.A[i][j] + 1. / 3. * metric_vars.h[i][j] * metric_vars.K);
-    }
-
-    // evolution equation for the scalar part of the Proca field
-    data_t gnn{dVdA - 2.0 * dVddA * matter_vars.phi * matter_vars.phi};
-    data_t mass{m_potential.m_params.mass};
-
-    total_rhs.phi = metric_vars.lapse * matter_vars.Z * mass * mass / (2 * gnn) +
+    total_rhs.phi = - metric_vars.lapse * matter_vars.Z * mass * mass / (2 * gnn) +
                     metric_vars.lapse * dVdA * matter_vars.phi * metric_vars.K / (gnn) + advec.phi;
     FOR1(i)
     {

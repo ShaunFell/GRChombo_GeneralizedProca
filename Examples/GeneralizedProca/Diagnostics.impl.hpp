@@ -113,19 +113,8 @@ void EffectiveMetric<potential_t>::compute(Cell<data_t> current_cell) const
     data_t det_metric { -vars.lapse*vars.lapse/(vars.chi*vars.chi*vars.chi) };
     data_t det_eff_metric { 2*det_metric*(dVdA - 2*dVddA*vars.phi*vars.phi + 2*dVddA*Xsquared) };
 
-
-#ifdef EQUATION_DEBUG_MODE
-    DEBUG_OUT(dVdA);
-    DEBUG_OUT(dVddA);
-    DEBUG_OUT(vars.phi);
-    DEBUG_OUT(gnn);
-#endif //EQUATION_DEBUG_MODE
-
     current_cell.store_vars(gnn, c_gnn);
     current_cell.store_vars(det_eff_metric, c_g);
-
-
-
 }
 
 template <class data_t>
@@ -155,13 +144,62 @@ void ProcaSquared::compute(Cell<data_t> current_cell) const
     current_cell.store_vars(Asquared, c_Asquared);
 };
 
-template <class potential_t, class matter_t>
+template <class matter_t>
 template <class data_t>
-void EnergyAndAngularMomentum<potential_t, matter_t>::compute(Cell<data_t> current_cell) const 
+void EnergyAndAngularMomentum<matter_t>::compute(Cell<data_t> current_cell) const 
 {
-    const auto vars = current_cell.template load_vars<Vars>();
-    const auto d1 = m_deriv.template diff1<Vars>(current_cell);
+    /*
+        See https://arxiv.org/pdf/2104.13420.pdf for conservation equations
+    */
+    
+    const auto grid_vars = current_cell.template load_vars<Vars>();
+    const auto grid_d1 { m_deriv.template diff1<Vars>(current_cell) };
+
     Coordinates<data_t> coords(current_cell, m_dx, m_center);
+
+    Tensor<2,data_t> gamma_LL;
+    Tensor<2,data_t> gamma_UU;
+    FOR2(i,j)
+    {
+        gamma_LL[i][j] = grid_vars.h[i][j]/grid_vars.chi;
+        gamma_UU[i][j] = grid_vars.h[i][j]*grid_vars.chi;
+    }
+    Tensor<2,data_t> h_UU { TensorAlgebra::compute_inverse_sym(grid_vars.h) };
+    Tensor<3, data_t>  chris_conf { TensorAlgebra::compute_christoffel(grid_d1.h, h_UU).ULL };
+    const auto det_gamma = TensorAlgebra::compute_determinant_sym(gamma_LL);
+   
+    const auto emtensor = m_matter.compute_emtensor(grid_vars, grid_d1, h_UU, chris_conf);
+    //compute conserved charges related to killing vectors in Kerr-Schild spacetime
+
+    //conserved energy
+    data_t rho = -emtensor.rho * grid_vars.lapse;
+    FOR1(i)
+    {
+        rho += grid_vars.shift[i] * emtensor.Si[i];
+    }
+    rho *= sqrt(det_gamma);
+
+
+    //conserved angular momentum
+    Tensor<1,data_t> ddphi;
+    ddphi[0] = -coords.y;
+    ddphi[1] = coords.x;
+    ddphi[2] = 0.;
+
+    data_t rhoJ = 0.;
+    FOR1(i)
+    {
+        rhoJ += emtensor.Si[i] * ddphi[i];
+    }
+    rhoJ *= sqrt(det_gamma);
+
+    current_cell.store_vars(rho, c_rho);
+    current_cell.store_vars(rhoJ, c_rhoJ);
+
+    current_cell.store_vars(emtensor.rho, c_rhoE);
+
+
+
 }
 
 

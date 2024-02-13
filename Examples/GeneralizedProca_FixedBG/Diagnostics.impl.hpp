@@ -158,15 +158,19 @@ void ProcaSquared::compute(Cell<data_t> current_cell) const
     current_cell.store_vars(Asquared, c_Asquared);
 };
 
-template <class matter_t>
+template <class matter_t, class background_t>
 template <class data_t>
-void EnergyAndAngularMomentum<matter_t>::compute(Cell<data_t> current_cell) const 
+void EnergyAndAngularMomentum<matter_t, background_t>::compute(Cell<data_t> current_cell) const 
 {
     /*
         See https://arxiv.org/pdf/2104.13420.pdf for conservation equations
     */
+    
     const auto metric_vars = current_cell.template load_vars<MetricVars>();
     const auto matter_vars = current_cell.template load_vars<MatterVars>();
+    const auto d1_metric { m_deriv.template diff1<MetricVars>(current_cell) };
+    const auto d1_matter { m_deriv.template diff1<MatterVars>(current_cell) };
+
     Coordinates<data_t> coords(current_cell, m_dx, m_center);
 
     Tensor<2,data_t> gamma_LL;
@@ -177,14 +181,10 @@ void EnergyAndAngularMomentum<matter_t>::compute(Cell<data_t> current_cell) cons
         gamma_UU[i][j] = metric_vars.h[i][j]*metric_vars.chi;
     }
     Tensor<2,data_t> h_UU { TensorAlgebra::compute_inverse_sym(metric_vars.h) };
-    MetricVars<Tensor<1,data_t>> d1_metric { m_deriv.template diff1<MetricVars>(current_cell) };
-    MatterVars<Tensor<1,data_t>> d1_matter { m_deriv.template diff1<MatterVars>(current_cell) };
     Tensor<3, data_t>  chris_conf { TensorAlgebra::compute_christoffel(d1_metric.h, h_UU).ULL };
     const auto det_gamma = TensorAlgebra::compute_determinant_sym(gamma_LL);
    
     const auto emtensor = m_matter.compute_emtensor(matter_vars, metric_vars, d1_metric, d1_matter, h_UU, chris_conf);
-
-
     //compute conserved charges related to killing vectors in Kerr-Schild spacetime
 
     //conserved energy
@@ -211,6 +211,8 @@ void EnergyAndAngularMomentum<matter_t>::compute(Cell<data_t> current_cell) cons
 
     current_cell.store_vars(rho, c_rho);
     current_cell.store_vars(rhoJ, c_rhoJ);
+
+    current_cell.store_vars(emtensor.rho, c_rhoE);
 
 
 

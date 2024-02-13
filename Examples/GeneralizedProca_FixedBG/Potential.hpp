@@ -39,24 +39,18 @@ class ProcaPotential{
         // V = mu^2 /2 * A^2 + lambda*mu^2/4 * A^4
         // dVdA = mu^2/2 + lambda*mu^2/2 * A^2
         // dVddA = lambda*mu^2/2
+        /* 
         V = pow(m_params.mass,2.0)/2.0 * Asquared + lambda*pow(m_params.mass,2.0)/4.0 * Asquared*Asquared;
         dVdA = pow(m_params.mass, 2.0)/2.0 * ( 1.0 + lambda*Asquared);
-        dVddA = pow(m_params.mass, 2.0)/2.0 * lambda;
+        dVddA = pow(m_params.mass, 2.0)/2.0 * lambda; 
+        */
 
-    //################################################################################
-#ifdef EQUATION_DEBUG_MODE
-        DEBUG_OUT(V);
-        DEBUG_OUT(dVdA);
-        DEBUG_OUT(dVddA);
-        DEBUG_OUT(Asquared);
-        DEBUG_OUT3(vars.Avec[0], vars.Avec[1], vars.Avec[2]);
-        DEBUG_OUT(vars.phi);
-        DEBUG_OUT4(gamma_UU[0][0], gamma_UU[0][1], gamma_UU[0][2], gamma_UU[1][1]);
-        DEBUG_OUT2(gamma_UU[1][2], gamma_UU[2][2]);
-#endif //EQUATION_DEBUG_MODE
-    //################################################################################
+        double potPrefactor {pow(m_params.mass,2.0)  };
+        V =  potPrefactor * (Asquared + 2.0 * lambda * Asquared * Asquared);
+        dVdA = potPrefactor * ( 1.0 + 4.0*lambda*Asquared);
+        dVddA = potPrefactor * 4.0 * lambda;
 
-        };
+    };
 
 };
 

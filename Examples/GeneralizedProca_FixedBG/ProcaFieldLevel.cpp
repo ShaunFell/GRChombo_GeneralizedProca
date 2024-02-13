@@ -21,6 +21,7 @@
 //problem specific includes
 #include "InitialProcaData.hpp"
 #include "KerrSchild.hpp"
+#include "KerrQI.hpp"
 #include "Potential.hpp"
 #include "ProcaField.hpp"
 #include "Diagnostics.hpp"
@@ -29,7 +30,7 @@
 
 
 /* #include "MatterWeyl4.hpp"
-#include "WeylExtraction.hpp" */
+#include "WeylExtraction.hpp"  */
 
 
 //do things at end of advance step, after RK4 calculation
@@ -50,16 +51,28 @@ void ProcaFieldLevel::initialData()
         pout()<<"ProcaFieldLevel::initialData " << m_level << endl;
     }
 
-    KerrSchild kerr_init { m_p.kerr_params, m_dx };
-    InitialProcaData proca_init { m_p.initialdata_params, m_p.potential_params, m_p.kerr_params, m_dx };
+    if (m_p.background_KerrSchild) {
+        KerrSchild kerr_init { m_p.kerrSchild_params, m_dx };
+        InitialProcaData<KerrSchild> proca_init { m_p.initialdata_params, m_p.potential_params, m_p.kerrSchild_params, m_dx };
+        BoxLoops::loop(kerr_init, m_state_new, m_state_new, FILL_GHOST_CELLS);
+        BoxLoops::loop(proca_init,m_state_new, m_state_new, FILL_GHOST_CELLS);
 
-    BoxLoops::loop(kerr_init, m_state_new, m_state_new, FILL_GHOST_CELLS);
-    BoxLoops::loop(proca_init,m_state_new, m_state_new, FILL_GHOST_CELLS);
+        BoxLoops::loop(
+                ExcisionProcaEvolution<ProcaFieldWithPotential, KerrSchild>(kerr_init, m_dx, m_p.center, m_p.inner_r),
+                m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
+            );
 
-    BoxLoops::loop(
-            ExcisionProcaEvolution<ProcaFieldWithPotential, KerrSchild>(kerr_init, m_dx, m_p.center, m_p.inner_r),
-            m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
-        );
+    } else if (m_p.background_QI) {
+        KerrQI kerr_init { m_p.kerrQI_params, m_dx };
+        InitialProcaData<KerrQI> proca_init { m_p.initialdata_params, m_p.potential_params, m_p.kerrQI_params, m_dx };
+        BoxLoops::loop(kerr_init, m_state_new, m_state_new, FILL_GHOST_CELLS);
+        BoxLoops::loop(proca_init,m_state_new, m_state_new, FILL_GHOST_CELLS);
+
+        BoxLoops::loop(
+                ExcisionProcaEvolution<ProcaFieldWithPotential, KerrQI>(kerr_init, m_dx, m_p.center, m_p.inner_r),
+                m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
+            );
+    }
 
 
 };
@@ -85,12 +98,21 @@ void ProcaFieldLevel::prePlotLevel()
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
 
-
-    BoxLoops::loop(
-        ExcisionDiagnostics(m_dx, m_p.center, m_p.inner_r, m_p.outer_r),
-        m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-        disable_simd()
-    );
+    if (m_p.background_KerrSchild) {
+        KerrSchild kerr_bh { m_p.kerrSchild_params, m_dx };
+        BoxLoops::loop(
+            ExcisionDiagnostics<KerrSchild>(kerr_bh, m_dx, m_p.center, m_p.inner_r),
+            m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+            disable_simd()
+        );
+    } else if (m_p.background_QI) {
+        KerrQI kerr_bh { m_p.kerrQI_params, m_dx };
+        BoxLoops::loop(
+            ExcisionDiagnostics<KerrQI>(kerr_bh, m_dx, m_p.center, m_p.inner_r),
+            m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+            disable_simd()
+        );
+    }
 };
 #endif //CH_USE_HDF5
 
@@ -102,15 +124,24 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     //Calculate right hand side with matter_t = ProcaField
     ProcaPotential potential(m_p.potential_params);
     ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
-    KerrSchild kerr_bh(m_p.kerr_params, m_dx);
-
-    FixedBGEvolution<ProcaFieldWithPotential, KerrSchild> matter_class(proca_field, kerr_bh, m_p.sigma, m_dx, m_p.center);
-    BoxLoops::loop(matter_class, a_soln, a_rhs, SKIP_GHOST_CELLS);
-
+    if (m_p.background_KerrSchild) {
+        KerrSchild kerr_init { m_p.kerrSchild_params, m_dx };
+        FixedBGEvolution<ProcaFieldWithPotential, KerrSchild> matter_class(proca_field, kerr_init, m_p.sigma, m_dx, m_p.center);
+        BoxLoops::loop(matter_class, a_soln, a_rhs, SKIP_GHOST_CELLS);
         BoxLoops::loop(
-            ExcisionProcaEvolution<ProcaFieldWithPotential, KerrSchild>(kerr_bh, m_dx, m_p.center, m_p.inner_r),
+            ExcisionProcaEvolution<ProcaFieldWithPotential, KerrSchild>(kerr_init, m_dx, m_p.center, m_p.inner_r),
             a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
         );
+    
+    } else if (m_p.background_QI) {
+        KerrQI kerr_init { m_p.kerrQI_params, m_dx };
+        FixedBGEvolution<ProcaFieldWithPotential, KerrQI> matter_class(proca_field, kerr_init, m_p.sigma, m_dx, m_p.center);
+        BoxLoops::loop(matter_class, a_soln, a_rhs, SKIP_GHOST_CELLS);
+        BoxLoops::loop(
+            ExcisionProcaEvolution<ProcaFieldWithPotential, KerrQI>(kerr_init, m_dx, m_p.center, m_p.inner_r),
+            a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
+        );
+    }
 };
 
 void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &a_rhs,
@@ -156,21 +187,49 @@ void ProcaFieldLevel::specificPostTimeStep()
         ProcaPotential potential(m_p.potential_params);
         ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
 
-        //compute energy and angular momentum
-        EnergyAndAngularMomentum<ProcaFieldWithPotential> energy_and_angularmomentum(m_dx, proca_field, m_p.center);
+        if (m_p.background_KerrSchild) {
+            KerrSchild kerr_init { m_p.kerrSchild_params, m_dx };
 
-        //compute diagnostics on each cell of current level
-        BoxLoops::loop(
-            energy_and_angularmomentum,
-            m_state_new, m_state_diagnostics, SKIP_GHOST_CELLS
-        );
+            //compute energy and angular momentum
+            EnergyAndAngularMomentum<ProcaFieldWithPotential, KerrSchild> energy_and_angularmomentum(kerr_init, m_dx, proca_field, m_p.center);
 
-        //excise within horizon
-        BoxLoops::loop(
-            ExcisionDiagnostics(m_dx, m_p.center, m_p.inner_r, m_p.outer_r),
-            m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-            disable_simd()
-        );
+            //compute background first
+            BoxLoops::loop(kerr_init, m_state_new, m_state_new, FILL_GHOST_CELLS);
+            
+            //compute diagnostics on each cell of current level
+            BoxLoops::loop(
+                energy_and_angularmomentum,
+                m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
+            );
+
+            //excise within horizon
+            BoxLoops::loop(
+                ExcisionDiagnostics<KerrSchild>(kerr_init, m_dx, m_p.center, m_p.inner_r),
+                m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+                disable_simd()
+            );
+        } else if (m_p.background_QI) {
+            KerrQI kerr_init { m_p.kerrQI_params, m_dx };
+
+            //compute energy and angular momentum
+            EnergyAndAngularMomentum<ProcaFieldWithPotential, KerrQI> energy_and_angularmomentum(kerr_init, m_dx, proca_field, m_p.center);
+
+            //compute background first
+            BoxLoops::loop(kerr_init, m_state_new, m_state_new, FILL_GHOST_CELLS);
+            
+            //compute diagnostics on each cell of current level
+            BoxLoops::loop(
+                energy_and_angularmomentum,
+                m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
+            );
+
+            //excise within horizon
+            BoxLoops::loop(
+                ExcisionDiagnostics<KerrQI>(kerr_init, m_dx, m_p.center, m_p.inner_r),
+                m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+                disable_simd()
+            );
+        }
     };
 
     //Calculate integrals of densities

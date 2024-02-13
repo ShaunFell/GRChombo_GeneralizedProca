@@ -70,42 +70,19 @@ public:
         const data_t kerrMass = m_paramsKerr.mass;
         const data_t kerrSpin = m_paramsKerr.spin;
         const data_t kerrSpin2 = kerrSpin*kerrSpin;      
-        const data_t rP_QI = 1./4. * (kerrMass + sqrt(kerrMass*kerrMass - kerrSpin2));
-        const data_t rP_BL = 4. * rP_QI; 
+        const data_t rP_BL = kerrMass * (1 + sqrt(1 - kerrSpin2));
         const data_t rho = coords.get_radius(); //x^2 + y^2 + z^2
 
-        //convert the quasi-isotropic radial coordinate to boyer-lindquist
-        auto QI_to_BL {
-            [rP_BL] (data_t r) {
-                return r * (1 + rP_BL/(4*r)) * (1 + rP_BL/(4*r));
-            }
-        };
-        const data_t r_BL { QI_to_BL(rho) };
-        const data_t sinTheta_BL { sqrt(coords.x*coords.x + coords.y*coords.y) / rho };
-        const data_t cosTheta_BL { coords.z / rho };
-/*         const data_t sinPhi_BL { coords.y / sqrt(coords.x * coords.x + coords.y * coords.y) };
-        const data_t cosPhi_BL { coords.x / sqrt(coords.x * coords.x + coords.y * coords.y) };
-        const data_t x_BL { r_BL * cosPhi_BL * sinTheta_BL };
-        const data_t y_BL { r_BL * sinPhi_BL * sinTheta_BL };
-        const data_t z_BL { r_BL * cosTheta_BL }; */
 
-        data_t detGamma_BL { ( pow( (r_BL*r_BL + kerrSpin2*cosTheta_BL*cosTheta_BL) ,2. ) * sinTheta_BL*sinTheta_BL * 
-                                ( r_BL*r_BL + kerrSpin2 + ( 2*r_BL*kerrSpin2*kerrMass*sinTheta_BL*sinTheta_BL ) / (r_BL*r_BL + kerrSpin2*cosTheta_BL*cosTheta_BL) )
-                            ) / (r_BL*r_BL + kerrSpin2 - 2*r_BL*kerrMass)
-         };
-        data_t conformalFactor_BL { pow(detGamma_BL, -1.0/3.0) };
-
+        //Use relation for quasi-isotropic coords to boyer-lindquist
+        const data_t r_BL = rho * ( 1 + rP_BL/(4 * rho )) *  ( 1 + rP_BL/(4 * rho ));
 
 
         data_t alpha = kerrMass*m_paramsPotential.mass;
         data_t r0_BL { 1.0/(m_paramsPotential.mass*alpha) };
 
         // if outside horizon, set initial data, else if inside, truncate to 0
-/*         mattervars.Avec[0] = m_params.amplitude*pow(vars.chi, 3./2.)*exp(-r_BL/r0_BL);
- */      
-        mattervars.Avec[0] = m_params.amplitude*pow(vars.chi, 3./2.)*exp(-rho/r0_BL);
-/*         mattervars.Avec[0] = m_params.amplitude*pow(conformalFactor_BL, 3./2.)*exp(-r_BL/r0_BL);
- */     
+        mattervars.Avec[0] = m_params.amplitude*pow(vars.chi, 3.)*exp(-r_BL/r0_BL);
         mattervars.Avec[1] = 0.;
         mattervars.Avec[2] = 0.;
         mattervars.phi = 0.;

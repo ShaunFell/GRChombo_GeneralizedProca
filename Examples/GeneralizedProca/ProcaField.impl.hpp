@@ -28,9 +28,7 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
     FOR2(i, j) { gamma_UU[i][j] = h_UU[i][j] * vars.chi; };
 
     // compute covariant physical spatial metric
-    Tensor<2, data_t> gamma_LL{TensorAlgebra::compute_inverse_sym(
-        gamma_UU)}; // inverse of inverse metric -> pure covariant spatial
-                    // metric
+    Tensor<2, data_t> gamma_LL{TensorAlgebra::compute_inverse_sym(gamma_UU)}; // inverse of inverse metric -> pure covariant spatial metric
 
     // compute physical christoffel symbols
     Tensor<3, data_t> chris_phys_ULL{TensorAlgebra::compute_phys_chris(
@@ -142,6 +140,26 @@ void ProcaField<potential_t>::add_matter_rhs(
     data_t dVddA{0.};
     m_potential.compute_potential(V, dVdA, dVddA, vars, gamma_UU);
 
+    // covariant derivative of spatial part of Proca field
+    Tensor<2, data_t> DA;
+    FOR2(i, j)
+    {
+        DA[i][j] = d1.Avec[j][i];
+        FOR1(k) { DA[i][j] -= chris_phys[k][i][j] * vars.Avec[k]; }
+    }
+
+    // Extrinsic curvature
+    Tensor<2, data_t> ExCurv;
+    FOR2(i, j)
+    {
+        ExCurv[i][j] =
+            (1. / vars.chi) * (vars.A[i][j] + 1. / 3. * vars.h[i][j] * vars.K);
+    }
+
+    // evolution equation for the scalar part of the Proca field
+    data_t gnn{dVdA - 2.0 * dVddA * vars.phi * vars.phi};
+    data_t mass{m_potential.m_params.mass};
+
     // evolution equations for spatial part of vector field (index down)
     FOR1(i)
     {
@@ -196,26 +214,6 @@ void ProcaField<potential_t>::add_matter_rhs(
             total_rhs.Z += vars.lapse * chris_phys[i][i][j] * vars.Evec[j];
         }
     }
-
-    // covariant derivative of spatial part of Proca field
-    Tensor<2, data_t> DA;
-    FOR2(i, j)
-    {
-        DA[i][j] = d1.Avec[j][i];
-        FOR1(k) { DA[i][j] -= chris_phys[k][i][j] * vars.Avec[k]; }
-    }
-
-    // Extrinsic curvature
-    Tensor<2, data_t> ExCurv;
-    FOR2(i, j)
-    {
-        ExCurv[i][j] =
-            (1. / vars.chi) * (vars.A[i][j] + 1. / 3. * vars.h[i][j] * vars.K);
-    }
-
-    // evolution equation for the scalar part of the Proca field
-    data_t gnn{dVdA - 2.0 * dVddA * vars.phi * vars.phi};
-    data_t mass{m_potential.m_params.mass};
 
     total_rhs.phi =  - vars.lapse * vars.Z * mass * mass / (2 * gnn) +
                     vars.lapse * dVdA * vars.phi * vars.K / (gnn) + advec.phi;

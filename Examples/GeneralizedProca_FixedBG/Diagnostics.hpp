@@ -93,7 +93,7 @@ class ProcaSquared
         void compute(Cell<data_t> current_cell) const;
 };
 
-template <class matter_t>
+template <class matter_t, class background_t>
 class EnergyAndAngularMomentum
 {
     protected:
@@ -109,9 +109,10 @@ class EnergyAndAngularMomentum
         const double m_dx;
         const std::array<double, CH_SPACEDIM> m_center;
         const FourthOrderDerivatives m_deriv;
+        background_t m_background;
 
     public:
-        EnergyAndAngularMomentum(double a_dx, matter_t a_matter, std::array<double, CH_SPACEDIM> a_center):m_matter{a_matter}, m_dx{a_dx}, m_center{a_center}, m_deriv{a_dx} {};
+        EnergyAndAngularMomentum(background_t a_background, double a_dx, matter_t a_matter, std::array<double, CH_SPACEDIM> a_center): m_background{a_background}, m_matter{a_matter}, m_dx{a_dx}, m_center{a_center}, m_deriv{a_dx} {};
 
         template <class data_t>
         void compute(Cell<data_t> current_cell) const;
