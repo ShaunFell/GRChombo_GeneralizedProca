@@ -1,10 +1,6 @@
 
 
-
-### GeneralizedProca_FixedBH
-### params_FIXED_HighRes.txt
-
-
+###  params_Fixed_HighRes.txt
 
 ################################################## Filesystem parameters
 
@@ -12,19 +8,18 @@
 verbosity = 3
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/TEST"
-chk_prefix = GeneralizedProcaFixed_
-plot_prefix = GeneralizedProcaFixedp_
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/TEST_AH"
+chk_prefix = GeneralizedProca_
+plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
-integrals_filename = "integrals"
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 checkpoint_interval = 1
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 1
-num_plot_vars = 7
-plot_vars = chi Gauss Asquared Z rho rhoJ rhoE
+num_plot_vars = 9
+plot_vars = chi Ham Gauss Asquared gnn Z rho rhoJ rhoE
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -44,16 +39,16 @@ print_progress_only_to_rank_0 = 1
 activate_ham_tagging = 0
 activate_gauss_tagging = 0
 
-max_level = 7
+max_level = 3
 
 # using fixed grid right now. Uncomment when using Constraint tagging!!
-regrid_interval   =  0 0 0 0 0 0 0
+regrid_interval   =  0 0 0
 #regrid_threshold = 0.005
 
 
 ################################################## Physical constants
 ##################################################
-G_Newton = 0
+G_Newton = 0.0
 
 ################################################## Initial Data parameters
 ##################################################
@@ -61,11 +56,8 @@ G_Newton = 0
 # Kerr parameters
 kerr_mass = 1.0
 kerr_spin = 0.99
-kerr_center = 64 64 64 # defauts to center
+kerr_center = 32 32 32 # defauts to center
 kerr_spindir = 0 0 1 #along z-axis
-
-KerrSchild = 0 #Use kerr schild background
-KerrQI = 1 #Use quasi-isotropic background
 
 
 # Proca parameters
@@ -81,8 +73,8 @@ initial_proca_amplitude = 0.1
 ################################################## Grid parameters
 ##################################################
 
-N_full = 64
-L_full = 128
+N_full = 32
+L_full = 64
 
 # Max and min box sizes
 max_box_size = 16
@@ -92,7 +84,7 @@ min_box_size = 16
 tag_buffer_size = 0
 
 #grid spacing between refinement levels
-grid_buffer_size = 32
+grid_buffer_size = 16
 # fill_ratio = 0.7
 # num_ghosts = 3
 # center = 256.0 256.0 256.0 # defaults to center of the grid
@@ -119,9 +111,11 @@ lo_boundary = 1 1 1
 # 1,2,3 = odd x, y, z
 # 4,5,6 = odd xy, yz, xz
 # 7     = odd xyz
-vars_parity            =  0 1 2 3 #phi Avec
-                                1 2 3 0 # Evec Z
-vars_parity_diagnostic = 0 0 1 2 3  1 2 3 0 0 0 0 0 0 0       #Ham, Ham abs sum,  Mom, Mom abs sum, Weyl Re, Weyl Im, gauss, Asquared, gnn, g, Zout
+vars_parity            = 0 0 4 6 0 5 0    #chi and hij
+                         0 0 4 6 0 5 0    #K and Aij
+                         0 1 2 3          #Theta and Gamma
+                         0 1 2 3 1 2 3    #lapse shift and B
+vars_parity_diagnostic = 0 1 2 3          #Ham and Mom
 
 # if sommerfeld boundaries selected, must select
 # non zero asymptotic values
@@ -147,6 +141,23 @@ max_spatial_derivative_order = 4 # can be 4 or 6
 
 nan_check = 1
 
+# Lapse evolution
+lapse_advec_coeff = 1.0
+lapse_coeff = 2.0
+lapse_power = 1.0
+
+# Shift evolution
+shift_advec_coeff = 0.0 # Usually no advection for beta
+shift_Gamma_coeff = 0.75
+eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
+
+# CCZ4 parameters
+formulation = 1 # 1 for BSSN, 0 for CCZ4
+kappa1 = 0
+kappa2 = 0.
+kappa3 = 0
+covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
+
 # coefficient for KO numerical dissipation
 #sigma = 0.3 #default
 sigma = 0.3
@@ -157,8 +168,10 @@ min_lapse = 1.e-4
 ################################################## Apparent Horizon Finder parameters
 ##################################################
 
-AH_activate = 0
-AH_num_ranks = 8
+AH_activate = 1
+
+## NOTE: AH_num_ranks must be less or equal than cpu-per-task in job script
+AH_num_ranks = 2
 AH_num_points_u = 49
 AH_num_points_v = 48
 AH_solve_interval = 1
@@ -167,12 +180,12 @@ AH_track_center = false
 AH_predict_origin = false
 AH_stop_if_max_fails = 1
 AH_verbose = 1
-AH_initial_guess = 0.35
+AH_initial_guess = 0.28
 AH_num_extra_vars = 1
 AH_extra_vars = chi
 
 
-AH_level_to_run = 5
+AH_level_to_run = 3
 AH_allow_re_attempt = 1
 AH_start_time = 0.
 AH_give_up_time = -1. # -1 to never
@@ -188,6 +201,7 @@ AH_coords_prefix = "AH_coords"
 ################################################## Excision Parameters
 ##################################################
 excision_with_AH = 0 ## dont activate. I haven't debugged yet...
+excise_with_chi = 1
 
 ################################################## Extraction parameters
 ##################################################
@@ -200,7 +214,7 @@ calculate_constraint_norms = 0
 
 num_extraction_radii = 2
 extraction_radii = 50.0 100.0
-inner_r = 1. #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1
+inner_r = 0.28 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
 outer_r = 120.0
 extraction_levels = 2 2
 num_points_phi = 24

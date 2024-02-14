@@ -160,6 +160,15 @@ void ProcaField<potential_t>::add_matter_rhs(
     data_t gnn{dVdA - 2.0 * dVddA * vars.phi * vars.phi};
     data_t mass{m_potential.m_params.mass};
 
+    //Calculations we want to do only once
+    Tensor<1,data_t> Elow { 0., 0., 0. };
+    Tensor<2,data_t> DA_antisym;
+    FOR2(i,j)
+    {
+        Elow[i] += gamma_LL[i][j] * vars.Evec[j];
+        DA_antisym[i][j] = d1.Avec[j][i] - d1.Avec[i][j];
+    }
+
     // evolution equations for spatial part of vector field (index down)
     FOR1(i)
     {
@@ -168,7 +177,7 @@ void ProcaField<potential_t>::add_matter_rhs(
 
         FOR1(j)
         {
-            total_rhs.Avec[i] += -vars.lapse * gamma_LL[i][j] * vars.Evec[j] +
+            total_rhs.Avec[i] += -vars.lapse * Elow[i] +
                                  vars.Avec[j] * d1.shift[j][i];
         };
     };
@@ -189,7 +198,7 @@ void ProcaField<potential_t>::add_matter_rhs(
         FOR3(j, k, l)
         {
             total_rhs.Evec[i] += gamma_UU[j][k] * gamma_UU[i][l] * (
-                                    d1.lapse[j] * ( d1.Avec[k][l] - d1.Avec[l][k] ) +
+                                    d1.lapse[j] * DA_antisym[l][k] +
                                     vars.lapse * ( d2.Avec[k][l][j] - d2.Avec[l][k][j] )
                                 );
 
@@ -197,8 +206,10 @@ void ProcaField<potential_t>::add_matter_rhs(
             {
                 total_rhs.Evec[i] +=
                     -vars.lapse * gamma_UU[j][k] * gamma_UU[i][l] *
-                    (chris_phys[m][j][l] * (d1.Avec[k][m] - d1.Avec[m][k]) +
-                     chris_phys[m][j][k] * (d1.Avec[m][l] - d1.Avec[l][m]));
+                    (
+                        chris_phys[m][j][l] * DA_antisym[m][k] +
+                        chris_phys[m][j][k] * DA_antisym[l][m]
+                     );
             };
         };
     };
@@ -233,11 +244,11 @@ void ProcaField<potential_t>::add_matter_rhs(
             FOR2(k, l)
             {
                 total_rhs.phi -=
-                    gamma_UU[i][k] * gamma_UU[j][l] *
-                    (2 * vars.lapse * dVddA / gnn * vars.phi * vars.Avec[i] *
-                         vars.Avec[j] * ExCurv[k][l] +
-                     2 * vars.lapse * dVddA / gnn * vars.Avec[i] *
-                         vars.Avec[j] * DA[k][l]);
+                    2 * vars.lapse * dVddA / gnn * gamma_UU[i][k] * gamma_UU[j][l] *
+                    ( 
+                        vars.phi * vars.Avec[i] * vars.Avec[j] * ExCurv[k][l]
+                      + vars.Avec[i] * vars.Avec[j] * DA[k][l]
+                      );
             }
         }
     }

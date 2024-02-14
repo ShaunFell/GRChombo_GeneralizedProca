@@ -159,13 +159,51 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
         BoxLoops::loop(my_ccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
     }
 
-    if (!m_p.excise_with_AH)
+    if (m_p.excise_with_AH)
+    {
+        pout() << "specificEvalRHS: Excising in RHS Method" << endl;
+        m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
+        double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
+        auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
+         ExcisionProcaEvolutionWithAH<ProcaFieldWithPotential, decltype(AH_Interp)> excision_init(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, m_p.inner_r);
+
+        pout () << "specificEvalRHS: Running excision" << endl;
+        //note use of decltype to capture type of AH_Interp, since we use 'auto' type above
+        BoxLoops::loop(
+           excision_init,
+            m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
+        );
+        pout() << "specificEvalRHS: Finished excision" << endl;
+    } else if (m_p.excise_with_chi) 
+    {
+        
+        pout() << "specificEvalRHS: Querying AH parameters" << endl;
+        //Excise with conformal factor
+        auto AH_mass { m_bh_amr.m_ah_finder.get(0) -> m_mass };
+        auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
+        double AH_dimless_spin { AH_spin / AH_mass };
+
+        pout() << "specificEvalRHS: AH_mass: " << AH_mass << endl;
+        pout() << "specificEvalRHS: AH_spin: " << AH_spin << endl;
+        pout() << "specificEvalRHS: AH_dimless_spin: " << AH_dimless_spin << endl;
+
+        ExcisionProcaEvolutionWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
+
+        pout() << "specificEvalRHS: Horizonchi: " << 0.2666 * sqrt(1 - AH_dimless_spin * AH_dimless_spin) << endl;
+
+        BoxLoops::loop(
+            excision_init,
+            m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
+        ) ;
+
+    } else 
     {
         BoxLoops::loop(
             ExcisionProcaEvolution<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
             a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
         );
-    };
+    }// end of excision
+    
 };
 
 void ProcaFieldLevel::specificUpdateODE(GRLevelData &a_soln, const GRLevelData &a_rhs,
@@ -264,22 +302,40 @@ void ProcaFieldLevel::specificPostTimeStep()
     }
     if (m_p.AH_activate && m_level == m_p.AH_params.level_to_run)
     {
-        pout() << "Solving AH"<<endl;
+
+        pout() << "specificPostTimeStep: Solving AH"<<endl;
         m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
 
         //If we perform excision of matter variables using found Apparent Horizon
         if (m_p.excise_with_AH) 
         {
-            pout() << "AH solved. Excising inside AH"<<endl;
+
             double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
-            pout() << "AH points determined"<<endl;
             auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
-            pout() << "AH solved. performing excision"<<endl;
+            ExcisionProcaEvolutionWithAH<ProcaFieldWithPotential, decltype(AH_Interp)> excision_init(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97);
+
             BoxLoops::loop(
-                ExcisionProcaEvolutionWithAH<ProcaFieldWithPotential, decltype(AH_Interp)>(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97),
+                excision_init,
                 m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
             );
-        };
+
+        } else if (m_p.excise_with_chi) 
+        {
+            
+            //Excise with conformal factor
+            auto AH_mass { m_bh_amr.m_ah_finder.get(0) -> m_mass };
+            auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
+            double AH_dimless_spin { AH_spin / AH_mass };
+
+            ExcisionProcaEvolutionWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
+
+            BoxLoops::loop(
+                excision_init,
+                m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
+            );
+
+        } //end if excise_with_chi
+
     }
 #endif //USE_AHFINDER
 

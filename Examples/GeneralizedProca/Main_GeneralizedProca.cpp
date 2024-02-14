@@ -78,13 +78,14 @@ int runGRChombo(int argc, char *argv[])
         if (level->time() == 0.)
             level->specificPostTimeStep();
     };
+
     // call 'now' really now
     MultiLevelTaskPtr<> call_task(task);
-    call_task.execute(bh_amr);
+    call_task.execute(bh_amr); 
 
     //go go go !!!!!! Run simulation
     bh_amr.run(sim_params.stop_time, sim_params.max_steps);
-
+ 
     auto now = Clock::now();
     auto duration = std::chrono::duration_cast<Minutes>(now - start_time);
     pout() << "Total simulation time (mins): " << duration.count() << ".\n";
