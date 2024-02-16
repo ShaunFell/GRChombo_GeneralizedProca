@@ -1,7 +1,7 @@
 
 
 ### GeneralizedProca
-###  params_Fixed_HighRes.txt
+###  params_Fixed_HighRes_NoExcision.txt
 
 ################################################## Filesystem parameters
 
@@ -9,7 +9,7 @@
 verbosity = 3
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/Fixed_GRChombo_Proca_23149010"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/Fixed_GRChombo_Proca_23159655"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -40,10 +40,10 @@ print_progress_only_to_rank_0 = 1
 activate_ham_tagging = 0
 activate_gauss_tagging = 0
 
-max_level = 5
+max_level = 4
 
 # using fixed grid right now. Uncomment when using Constraint tagging!!
-regrid_interval   =  0 0 0 0 0 
+regrid_interval   =  0 0 0 0
 #regrid_threshold = 0.005
 
 
@@ -166,12 +166,29 @@ sigma = 0.3
 min_chi = 1.e-4
 min_lapse = 1.e-4
 
+
+
+################################################## Excision Parameters
+##################################################
+excision_with_AH = 0 ## Dont Activate. Horrible performance
+excision_with_chi = 0  ##Excise using apparent horizon chi
+excision_with_cutoff = 0 ##Excise using predefined cutoff
+
+## cutoff.  Also used for diagnostic excision
+inner_r = 0.28 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
+
+## buffer region when excising diagnostics inside horizon
+AH_buffer = 0.97
+
+
+
 ################################################## Apparent Horizon Finder parameters
 ##################################################
 
-AH_activate = 0
+AH_activate = 1
 
-AH_num_ranks = 8
+## NOTE: AH_num_ranks must be less or equal than cpu-per-task in job script
+AH_num_ranks = 4
 AH_num_points_u = 49
 AH_num_points_v = 48
 AH_solve_interval = 1
@@ -180,12 +197,12 @@ AH_track_center = false
 AH_predict_origin = false
 AH_stop_if_max_fails = 1
 AH_verbose = 1
-AH_initial_guess = 0.35
+AH_initial_guess = 0.28
 AH_num_extra_vars = 1
 AH_extra_vars = chi
 
 
-AH_level_to_run = 5
+AH_level_to_run = 4
 AH_allow_re_attempt = 1
 AH_start_time = 0.
 AH_give_up_time = -1. # -1 to never
@@ -198,9 +215,6 @@ AH_coords_subpath = "AH/"
 AH_stats_prefix = "../AH/AH_stats"
 AH_coords_prefix = "AH_coords"
 
-################################################## Excision Parameters
-##################################################
-excision_with_AH = 0 ## dont activate. I haven't debugged yet...
 
 ################################################## Extraction parameters
 ##################################################
@@ -213,7 +227,6 @@ calculate_constraint_norms = 0
 
 num_extraction_radii = 2
 extraction_radii = 50.0 100.0
-inner_r = 0.28 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
 outer_r = 120.0
 extraction_levels = 2 2
 num_points_phi = 24

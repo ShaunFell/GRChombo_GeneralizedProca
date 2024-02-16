@@ -63,8 +63,11 @@ class SimulationParameters : public SimulationParametersBase
 
         pp.load("AH_initial_guess", AH_initial_guess, 0.5*kerr_params.mass);
         pp.load("excision_with_AH", excise_with_AH, false);
-        pp.load("excise_with_chi", excise_with_chi, false);
+        pp.load("excision_with_chi", excise_with_chi, false);
+        pp.load("excision_with_cutoff", excise_with_cutoff, false);
         pp.load("AH_activate", AH_activate, false);
+
+        pp.load("AH_buffer", AH_buffer, 1.0);
     }
 
     void check_params()
@@ -111,6 +114,8 @@ class SimulationParameters : public SimulationParametersBase
     bool excise_with_AH;
     bool AH_activate;
     bool excise_with_chi;
+    bool excise_with_cutoff;
+    double AH_buffer;
 
 };
 

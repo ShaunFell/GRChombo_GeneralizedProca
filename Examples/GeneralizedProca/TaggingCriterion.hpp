@@ -113,7 +113,7 @@ class CustomTaggingCriterion
         //first run fixed grid
         data_t FixedGridsTaggingCriterion { FixedGridTagging(current_cell) };
 
-        //then run Constrain tagging
+        //then run Constraint tagging
         data_t ConstraintTaggingCriterion { ConstraintTagging(current_cell) };
 
         //then run Extraction tagging

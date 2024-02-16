@@ -62,6 +62,7 @@ class ExcisionProcaEvolution
 
 
 
+#ifdef USE_AHFINDER
 
 //Excise matter vars using conformal factor
 template <class matter_t> 
@@ -119,6 +120,8 @@ class ExcisionProcaEvolutionWithChi
         } */
 };//end of class def
 
+#endif //USE_AHFINDER
+
 
 
 
@@ -156,14 +159,12 @@ class ExcisionProcaEvolutionWithAH
         //constructor
         ExcisionProcaEvolutionWithAH(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, AHinterp_t& a_ah_interp, const double a_num_AH_points, double a_excision_width=1.0): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_width}, m_ah_interp{a_ah_interp}, m_num_AH_points{a_num_AH_points}
         {
-            /* pout() << "ExcisionProcaEvolutionWithAH: Num AH points: " << m_num_AH_points <<endl; */
             for (int i{0}; i < m_num_AH_points; ++i){
                 auto point { m_ah_interp.get_cartesian_coords(i) };
                 m_AH_coords.push_back(
                     point
                 );
             };
-            /* pout() << "ExcisionProcaEvolutionWithAH: Points extracted" << endl; */
         };
 
         void compute(const Cell<double> current_cell) const
@@ -174,8 +175,6 @@ class ExcisionProcaEvolutionWithAH
             double min_distance;
             Tensor<1,double> closest_AH_point;
 
-            /* pout () << "ExcisionProcaEvolutionWithAH: Finding closest AH point" << endl; */
-            /* pout() << "ExcisionProcaEvolutionWithAH: Size of m_AH_coords: " << m_AH_coords.size() << endl; */
             for (int i{0}; i < m_num_AH_points; ++i)
             {
                 distance_to_AH_points.push_back(
@@ -192,10 +191,7 @@ class ExcisionProcaEvolutionWithAH
                     closest_AH_point = m_AH_coords[i];
                 }
             }
-           /*  pout() << "ExcisionProcaEvolutionWithAH: Found closest AH point" << endl;
-            pout() << "ExcisionProcaEvolutionWithAH: min_distance: " << min_distance << endl;
-            pout() << "ExcisionProcaEvolutionWithAH: closest_AH_point: " << closest_AH_point[0] << " " << closest_AH_point[1] << " " << closest_AH_point[2] << endl;
- */
+
             double AH_coord_BH_Centered_Norm { 
                                                 sqrt(
                                                     closest_AH_point[0]*closest_AH_point[0] +
@@ -208,7 +204,6 @@ class ExcisionProcaEvolutionWithAH
             bool cell_Inside_Horizon { cell_BH_centered_Norm <= AH_coord_BH_Centered_Norm };
             bool cell_Inside_Buffered_Horizon { cell_BH_centered_Norm <= m_excision_width * AH_coord_BH_Centered_Norm };
 
-            /* pout() << "ExcisionProcaEvolutionWithAH: Excising" << endl; */
             if (cell_Inside_Horizon)
             {
                 current_cell.store_vars(0.0, c_Z);

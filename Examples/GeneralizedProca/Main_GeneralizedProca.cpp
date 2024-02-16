@@ -65,7 +65,7 @@ int runGRChombo(int argc, char *argv[])
         sim_params.AH_params.coords_prefix = "coords_chi_" + str_chi + "_";
         bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
 #else 
-        pout() << "adding ah horizon"<<endl;
+        pout() << "adding apparent horizon"<<endl;
         bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
 #endif //USE_CHI_CONTOURS
     }

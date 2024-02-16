@@ -66,4 +66,58 @@ class ExcisionDiagnostics
 
 };
 
+
+
+
+
+
+
+#ifdef USE_AHFINDER
+//Excise matter vars using conformal factor
+template <class matter_t> 
+class ExcisionDiagnosticsWithAH
+{
+    // Use matter_t class
+    template <class data_t>
+    using Vars = typename matter_t::template Vars<data_t>;
+
+    template <class data_t>
+    using MetricVars = CCZ4Vars::VarsWithGauge<data_t>;
+
+    protected:
+        const double m_dx; //grid spacing
+        const std::array<double, CH_SPACEDIM> m_center; //center of BH
+        double m_minimal_radius;
+        double m_buffer;
+
+    public:
+
+        //constructor
+        ExcisionDiagnosticsWithAH(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_minimal_radius = 1., double a_buffer = 1.): m_dx{a_dx}, m_center{a_center}, m_minimal_radius{a_minimal_radius}, m_buffer{a_buffer} {};
+
+        void compute(const Cell<double> current_cell) const
+        {
+            const Coordinates<double> coords(current_cell, m_dx, m_center);
+            double cell_radius { coords.get_radius() };
+            double buffered_radius { m_buffer * m_minimal_radius };
+
+            bool cell_Inside_Horizon {  cell_radius < buffered_radius }; 
+
+            if (cell_Inside_Horizon)
+            {
+                current_cell.store_vars(0.0, c_gauss);
+                current_cell.store_vars(0.0, c_Asquared);
+                current_cell.store_vars(0.0, c_gnn);
+                current_cell.store_vars(0.0, c_Ham);
+                current_cell.store_vars(0.0, c_rho);
+                current_cell.store_vars(0.0, c_rhoJ);
+                current_cell.store_vars(0.0, c_rhoE);
+
+            } //excision
+
+        }//end of method def
+
+};//end of class def
+#endif //USE_AHFINDER
+
 #endif /* EXCISIONDIAGNOSTICS_HPP_ */
