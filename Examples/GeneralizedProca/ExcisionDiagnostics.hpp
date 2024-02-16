@@ -17,35 +17,107 @@
 
 //! Does excision for fixed BG BH solutions
 //! Note that it is does not using simd so one must set disable_simd()
+template <class matter_t> 
 class ExcisionDiagnostics
 {
-  protected:
-    const double m_dx;                              //!< The grid spacing
-    const std::array<double, CH_SPACEDIM> m_center; //!< The BH center
-    const double m_inner_r;
-    const double m_outer_r;
+    // Use matter_t class
+    template <class data_t>
+    using Vars = typename matter_t::template Vars<data_t>;
 
-  public:
-    ExcisionDiagnostics(const double a_dx,
-                        const std::array<double, CH_SPACEDIM> a_center,
-                        const double a_inner_r, const double a_outer_r)
-        : m_dx(a_dx), m_center(a_center), m_inner_r(a_inner_r),
-          m_outer_r(a_outer_r)
-    {
-    }
+    protected:
+        const double m_dx; //grid spacing
+        const double m_excision_width;
+        const std::array<double, CH_SPACEDIM> m_center; //center of BH
 
-    void compute(const Cell<double> current_cell) const
-    {
-        const Coordinates<double> coords(current_cell, m_dx, m_center);
-        if ((coords.get_radius() < m_inner_r) ||
-            (coords.get_radius() > m_outer_r))
+    public:
+
+        //constructor
+        ExcisionDiagnostics(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_excision_cut = 1): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_cut}
         {
-            current_cell.store_vars(0.0, c_gauss);
-            current_cell.store_vars(0.0, c_Asquared);
-            current_cell.store_vars(0.0, c_gnn);
-            current_cell.store_vars(0.0, c_Ham);
-        } // else do nothing
-    }
+        };
+
+        template <class data_t>
+        void compute(const Cell<data_t> current_cell) const
+        {
+            const Coordinates<data_t> coords(current_cell, m_dx, m_center);
+
+            //Next line is probably a bug. Coordinates should already be black hole-centered
+            //Tensor<1,data_t> coords_BHCentered { coords.x - m_center[0], coords.y-m_center[1], coords.z - m_center[2] };
+
+            //data_t cell_radius_BHCentered { sqrt ( TensorAlgebra::compute_dot_product(coords_BHCentered, coords_BHCentered) ) };
+            data_t cell_radius_BHCentered { coords.get_radius() };
+
+            data_t cell_Inside_Cutoff { (double)simd_compare_lt(cell_radius_BHCentered, m_excision_width) };
+
+            if (cell_Inside_Cutoff)
+            {
+              current_cell.store_vars(0.0, c_gauss);
+              current_cell.store_vars(0.0, c_Asquared);
+              current_cell.store_vars(0.0, c_gnn);
+              current_cell.store_vars(0.0, c_Ham);
+              current_cell.store_vars(0.0, c_rho);
+              current_cell.store_vars(0.0, c_rhoJ);
+              current_cell.store_vars(0.0, c_rhoE);
+
+
+            } //excision
+
+        }//end of method def
+
 };
+
+
+
+
+
+
+
+#ifdef USE_AHFINDER
+//Excise matter vars using conformal factor
+template <class matter_t> 
+class ExcisionDiagnosticsWithAH
+{
+    // Use matter_t class
+    template <class data_t>
+    using Vars = typename matter_t::template Vars<data_t>;
+
+    template <class data_t>
+    using MetricVars = CCZ4Vars::VarsWithGauge<data_t>;
+
+    protected:
+        const double m_dx; //grid spacing
+        const std::array<double, CH_SPACEDIM> m_center; //center of BH
+        double m_minimal_radius;
+        double m_buffer;
+
+    public:
+
+        //constructor
+        ExcisionDiagnosticsWithAH(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_minimal_radius = 1., double a_buffer = 1.): m_dx{a_dx}, m_center{a_center}, m_minimal_radius{a_minimal_radius}, m_buffer{a_buffer} {};
+
+        void compute(const Cell<double> current_cell) const
+        {
+            const Coordinates<double> coords(current_cell, m_dx, m_center);
+            double cell_radius { coords.get_radius() };
+            double buffered_radius { m_buffer * m_minimal_radius };
+
+            bool cell_Inside_Horizon {  cell_radius < buffered_radius }; 
+
+            if (cell_Inside_Horizon)
+            {
+                current_cell.store_vars(0.0, c_gauss);
+                current_cell.store_vars(0.0, c_Asquared);
+                current_cell.store_vars(0.0, c_gnn);
+                current_cell.store_vars(0.0, c_Ham);
+                current_cell.store_vars(0.0, c_rho);
+                current_cell.store_vars(0.0, c_rhoJ);
+                current_cell.store_vars(0.0, c_rhoE);
+
+            } //excision
+
+        }//end of method def
+
+};//end of class def
+#endif //USE_AHFINDER
 
 #endif /* EXCISIONDIAGNOSTICS_HPP_ */

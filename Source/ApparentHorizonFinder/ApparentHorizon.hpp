@@ -166,12 +166,32 @@ template <class SurfaceGeometry, class AHFunction> class ApparentHorizon
     // method
     std::array<IntegrationMethod, CH_SPACEDIM - 1> m_integration_methods;
 
+
+
+
+
+
+    //######################################
+    //######################################
+    //######################################
+    //######################################
+
+    //###################################### Shauns Modifications
+    // Make m_spin and m_mass public 
+
+    //######################################
+    //######################################
+    //######################################
+    //######################################
+
+
+
     // just to save the result temporarily at each iteration
     double m_area;
 #if GR_SPACEDIM == 3
-    double m_mass, m_linear_momentum_P_norm;
+    double m_linear_momentum_P_norm;
 #if CH_SPACEDIM == 3
-    double m_irreducible_mass, m_spin, m_spin_z_alt;
+    double m_irreducible_mass, m_spin_z_alt;
     Tensor<1, double> m_dimensionless_spin_vector, m_linear_momentum_P;
 #endif
 #endif
@@ -181,6 +201,13 @@ template <class SurfaceGeometry, class AHFunction> class ApparentHorizon
     bool origin_already_updated;
 
     PETScAHSolver<SurfaceGeometry, AHFunction> solver;
+
+
+
+    
+
+    public:
+    double m_mass, m_spin;
 };
 
 #include "ApparentHorizon.impl.hpp"

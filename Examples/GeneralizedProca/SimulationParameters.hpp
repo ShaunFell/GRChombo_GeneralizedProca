@@ -60,16 +60,24 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("grid_scaling", grid_scaling, 1.);
 
         //AH Finder
-#ifdef USE_AHFINDER
+
         pp.load("AH_initial_guess", AH_initial_guess, 0.5*kerr_params.mass);
         pp.load("excision_with_AH", excise_with_AH, false);
-#endif //USE_AHFINDER
+        pp.load("excision_with_chi", excise_with_chi, false);
+        pp.load("excision_with_cutoff", excise_with_cutoff, false);
+        pp.load("AH_activate", AH_activate, false);
+
+        pp.load("AH_buffer", AH_buffer, 1.0);
     }
 
     void check_params()
     {
         warn_parameter("kerr_mass", kerr_params.mass, kerr_params.mass >= 0.0,
                        "should be >= 0.0");
+
+        warn_parameter("inner_r", inner_r, inner_r != 0.0, "set to default parameters (0.0)");
+        warn_parameter("outer_r", outer_r, outer_r != 200.0, "set to default parameter (200.0)");
+
         check_parameter("kerr_spin", kerr_params.spin,
                         std::abs(kerr_params.spin) <= kerr_params.mass,
                         "must satisfy |a| <= M = " +
@@ -102,10 +110,12 @@ class SimulationParameters : public SimulationParametersBase
     bool activate_gauss_tagging;
     double grid_scaling;
 
-#ifdef USE_AHFINDER
     double AH_initial_guess;
     bool excise_with_AH;
-#endif
+    bool AH_activate;
+    bool excise_with_chi;
+    bool excise_with_cutoff;
+    double AH_buffer;
 
 };
 

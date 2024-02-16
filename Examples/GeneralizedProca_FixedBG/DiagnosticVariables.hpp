@@ -51,10 +51,9 @@ static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
 
     "Weyl4_Re", "Weyl4_Im",
     
-    "Gauss", "Asquared", "gnn", "g", "Z"
-
-    "rho", "rhoJ", "rhoE"
+    "Gauss", "Asquared", "gnn", "g", "Z",
     
+    "rho", "rhoJ", "rhoE"
     };
 }
 

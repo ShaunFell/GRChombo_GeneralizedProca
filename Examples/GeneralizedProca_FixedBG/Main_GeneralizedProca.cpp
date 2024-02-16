@@ -11,7 +11,8 @@
 
 // Our general includes
 #include "DefaultLevelFactory.hpp"
-#include "BHAMR.hpp"
+#include "AMRInterpolator.hpp"
+#include "GRAMR.hpp"
 #include "GRParmParse.hpp"
 #include "MultiLevelTask.hpp"
 #include "SetupFunctions.hpp"
@@ -20,8 +21,8 @@
 // Problem specific includes:
 #include "ProcaFieldLevel.hpp"
 
-// Chombo namespace
-#include "UsingNamespace.H"
+/* // Chombo namespace
+#include "UsingNamespace.H" */
 
 int runGRChombo(int argc, char *argv[])
 {
@@ -37,7 +38,7 @@ int runGRChombo(int argc, char *argv[])
     // The line below selects the problem that is simulated
     // (To simulate a different problem, define a new child of AMRLevel
     // and an associated LevelFactory)
-    BHAMR bh_amr;
+    GRAMR bh_amr;
     DefaultLevelFactory<ProcaFieldLevel> proca_field_level_fact(bh_amr, sim_params);
     setupAMRObject(bh_amr, proca_field_level_fact);
 
@@ -52,40 +53,19 @@ int runGRChombo(int argc, char *argv[])
 
     std::chrono::time_point<Clock> start_time = Clock::now();
 
-#ifdef USE_AHFINDER //Chombo make flags
-    if (sim_params.AH_activate)
-    {
-        pout() << "Defining surface geometry"<<endl;
-        AHSurfaceGeometry sph(sim_params.kerr_params.center);
-
-#ifdef USE_CHI_CONTOURS //located in UserVariables
-        std::string str_chi = std::to_string(
-            sim_params.AH_params.func_params.look_for_chi_contour);
-        sim_params.AH_params.stats_prefix = "stats_chi_" + str_chi + "_";
-        sim_params.AH_params.coords_prefix = "coords_chi_" + str_chi + "_";
-        bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
-#else 
-        pout() << "adding apparent horizon"<<endl;
-        bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
-#endif //USE_CHI_CONTOURS
-    }
-#endif //USE_AHFINDER
-
-
-    //call the PostTimeStep right now!!!!
+     //call the PostTimeStep right now!!!!
     auto task = [](GRAMRLevel *level)
     {
         if (level->time() == 0.)
             level->specificPostTimeStep();
     };
-
     // call 'now' really now
     MultiLevelTaskPtr<> call_task(task);
     call_task.execute(bh_amr); 
 
     //go go go !!!!!! Run simulation
     bh_amr.run(sim_params.stop_time, sim_params.max_steps);
- 
+
     auto now = Clock::now();
     auto duration = std::chrono::duration_cast<Minutes>(now - start_time);
     pout() << "Total simulation time (mins): " << duration.count() << ".\n";

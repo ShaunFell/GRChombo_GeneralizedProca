@@ -1,4 +1,4 @@
-/* GRChombo
+ /* GRChombo
  * Copyright 2012 The GRChombo collaboration.
  * Please refer to LICENSE in GRChombo's root directory.
  */
@@ -6,7 +6,7 @@
 #ifndef KERRSCHILD_HPP_
 #define KERRSCHILD_HPP_
 
-#include "ADMConformalVars.hpp"
+#include "ADMVars.hpp"
 #include "Cell.hpp"
 #include "Coordinates.hpp"
 #include "DimensionDefinitions.hpp"
@@ -26,12 +26,14 @@ class KerrSchild
         double mass = 1.0;                      //!<< The mass of the BH
         std::array<double, CH_SPACEDIM> center; //!< The center of the BH
         double spin = 0.0;                      //!< The spin param a = J / M
+        std::array<double, CH_SPACEDIM> spin_direction = {
+            0., 0., 1.}; // default to 'z' axis; doesn't need to be normalized
 
     };
 
-    // Use the variable definition in CCZ4
+    // Use the variable definition in ADM
     template <class data_t>
-    using Vars = ADMConformalVars::VarsWithGauge<data_t>;
+    using Vars = ADMVars::template Vars<data_t>;
 
     const params_t m_params;
     const double m_dx;
@@ -48,23 +50,22 @@ class KerrSchild
         }
     }
 
-    /// This just calculates chi which helps with regridding, debug etc
-    /// it is only done once on setup as the BG is fixed
-    template <class data_t> void compute(Cell<data_t> current_cell) const
+
+    // Kerr Schild solution
+    template <class data_t>
+    void compute(const Cell<data_t> &current_cell) const
     {
-        // get position and set vars
-        const Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
         Vars<data_t> metric_vars;
-        compute_metric_background(metric_vars, current_cell);
+        VarsTools::assign(metric_vars, 0.); // Initialize all to zero
+
+        compute_background(metric_vars, current_cell);
 
         current_cell.store_vars(metric_vars);
     }
 
-    // Kerr Schild solution
-    template <class data_t, template <typename> class vars_t>
-    void compute_metric_background(vars_t<data_t> &vars,
-                                   const Cell<data_t> &current_cell) const
-    {
+    template <class data_t>
+    void compute_background(Vars<data_t> &metric_vars, const Cell<data_t> &current_cell) const
+   {
         const Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
 
         // black hole params - mass M and spin a
@@ -89,6 +90,8 @@ class KerrSchild
         //setup physical tensors
         Tensor<1, data_t> d1_lapse;
         Tensor<2, data_t> d1_shift;
+        Tensor<1,data_t> d1_chi;
+        Tensor<2,Tensor<1,data_t>> d1_h;
         Tensor<2, data_t> K_tensor;
         Tensor<2, data_t> gamma;
         Tensor<2, Tensor<1,data_t>> d1_gamma;
@@ -106,7 +109,7 @@ class KerrSchild
         get_KS_derivs(dHdx, dldx, dltdx, H, coords);
 
         // populate ADM vars
-        vars.lapse = pow(1.0 + 2.0 * H * el_t * el_t, -0.5);
+        metric_vars.lapse = pow(1.0 + 2.0 * H * el_t * el_t, -0.5);
         FOR2(i, j)
         {
             gamma[i][j] =
@@ -116,10 +119,10 @@ class KerrSchild
         const auto gamma_UU = compute_inverse_sym(gamma);
         FOR1(i)
         {
-            vars.shift[i] = 0;
+            metric_vars.shift[i] = 0;
             FOR1(j)
             {
-                vars.shift[i] += gamma_UU[i][j] * 2.0 * H * el[j] * el_t;
+                metric_vars.shift[i] += gamma_UU[i][j] * 2.0 * H * el[j] * el_t;
             }
         }
 
@@ -134,7 +137,7 @@ class KerrSchild
         // calculate derivs of lapse and shift
         FOR1(i)
         {
-            d1_lapse[i] = -pow(vars.lapse, 3.0) * el_t *
+            d1_lapse[i] = -pow(metric_vars.lapse, 3.0) * el_t *
                                (el_t * dHdx[i] + 2.0 * H * dltdx[i]);
         }
 
@@ -142,10 +145,10 @@ class KerrSchild
         FOR2(i, j)
         {
             d1_shift[i][j] =
-                2.0 * el_t * dHdx[j] * pow(vars.lapse, 2.0) * el[i] +
-                4.0 * el_t * H * vars.lapse * d1_lapse[j] * el[i] +
-                2.0 * el_t * H * pow(vars.lapse, 2.0) * dldx[i][j] +
-                2.0 * dltdx[j] * H * pow(vars.lapse, 2.0) * el[i];
+                2.0 * el_t * dHdx[j] * pow(metric_vars.lapse, 2.0) * el[i] +
+                4.0 * el_t * H * metric_vars.lapse * d1_lapse[j] * el[i] +
+                2.0 * el_t * H * pow(metric_vars.lapse, 2.0) * dldx[i][j] +
+                2.0 * dltdx[j] * H * pow(metric_vars.lapse, 2.0) * el[i];
         }
 
         // calculate the extrinsic curvature, using the fact that
@@ -161,25 +164,53 @@ class KerrSchild
                     gamma[k][j] * d1_shift[k][i] +
                     gamma[k][i] * d1_shift[k][j] +
                     (d1_gamma[k][i][j] + d1_gamma[k][j][i]) *
-                        vars.shift[k];
+                        metric_vars.shift[k];
                 FOR1(m)
                 {
                     K_tensor[i][j] += -2.0 * chris_phys.ULL[k][i][j] *
-                                           gamma[k][m] * vars.shift[m];
+                                           gamma[k][m] * metric_vars.shift[m];
                 }
             }
-            K_tensor[i][j] *= 0.5 / vars.lapse;
+            K_tensor[i][j] *= 0.5 / metric_vars.lapse;
         }
-        vars.K = compute_trace(K_tensor, gamma_UU);
+        metric_vars.K = compute_trace(K_tensor, gamma_UU);
         
         //make conformal
-        vars.chi = pow(compute_determinant(gamma),-1./3.);
+        data_t det_gamma { compute_determinant(gamma)};
+        metric_vars.chi = pow(det_gamma,-1./3.);
+        Tensor<3,data_t> intermediate_matrix;
+        Tensor<1,data_t> trace_intermediate_matrix;
+        Tensor<1,data_t> delta_gamma;
         FOR2(i,j)
         {
-            vars.h[i][j] = gamma[i][j]/vars.chi;
-            vars.A[i][j] = vars.chi * (K_tensor[i][j] - 1./3. * vars.K*gamma[i][j]);
+            metric_vars.h[i][j] = gamma[i][j]*metric_vars.chi; //covariant conformal metric
+            metric_vars.A[i][j] = metric_vars.chi * (K_tensor[i][j] - 1./3. * metric_vars.K*gamma[i][j]); //covariant conformal traceless extrinsic curvature
+            FOR1(k)
+            {
+                intermediate_matrix[i][j][k] = 0;
+                FOR1(l)
+                {
+                    intermediate_matrix[i][j][k] += gamma_UU[i][l]*d1_gamma[l][j][k];
+                }
+            };
         }
-        auto h_UU = compute_inverse_sym(vars.h);
+        FOR1(i)
+        {
+            trace_intermediate_matrix[i] = 0;
+            FOR1(j)
+            {
+                trace_intermediate_matrix[i] += intermediate_matrix[j][j][i];
+            }
+            delta_gamma[i] = det_gamma * trace_intermediate_matrix[i];
+            d1_chi[i] = delta_gamma[i] * (-1./3.) * pow(det_gamma, -4./3.);
+        }
+
+        
+        FOR3(i,j,k)
+        {
+            d1_h[i][j][k] = d1_chi[k] * gamma[i][j] + metric_vars.chi * d1_gamma[i][j][k];
+        }
+        
     }
 
   protected:
