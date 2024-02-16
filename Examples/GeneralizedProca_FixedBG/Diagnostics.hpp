@@ -1,8 +1,8 @@
 #ifndef DIAGNOSTIC_H_INCLUDED
 #define DIAGNOSTIC_H_INCLUDED
 
+#include "ADMVars.hpp"
 #include "CCZ4Geometry.hpp"
-#include "CCZ4Vars.hpp"
 #include "ProcaField.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "Potential.hpp"
@@ -30,9 +30,12 @@ class ProcaConstraint
         //constructor
         ProcaConstraint(double dx, double a_vector_mass, double a_vector_damping, const potential_t potential);
 
-        // Use the variable definition in CCZ4
+        // Use the variable definition in ADMVars
         template <class data_t>
-        using Vars = typename MatterCCZ4<ProcaField<ProcaPotential>>::template Vars<data_t>;
+        using MetricVars = typename ADMVars::template Vars<data_t>;
+
+        template <class data_t>
+        using MatterVars = typename ProcaField<ProcaPotential>::template Vars<data_t>;
         
         //calculate constraint equations
         template<class data_t>
@@ -52,9 +55,12 @@ class EffectiveMetric
         const potential_t m_potential;
         const FourthOrderDerivatives m_deriv;
 
-        //extract all grid variables
+        // Use the variable definition in ADMVars
         template <class data_t>
-        using Vars = typename MatterCCZ4<ProcaField<potential_t>>::template Vars<data_t>;
+        using MetricVars = typename ADMVars::template Vars<data_t>;
+
+        template <class data_t>
+        using MatterVars = typename ProcaField<ProcaPotential>::template Vars<data_t>;
 
     public:
         EffectiveMetric(double dx, double a_vector_mass, double a_vector_damping, const potential_t a_potential):
@@ -73,13 +79,12 @@ class ProcaSquared
 
         const FourthOrderDerivatives m_deriv;
 
-        //extract all grid variables
+        // Use the variable definition in ADMVars
         template <class data_t>
-        using Vars = typename MatterCCZ4<ProcaField<ProcaPotential>>::template Vars<data_t>;
+        using MetricVars = typename ADMVars::template Vars<data_t>;
 
-        //extract only matter field variables
-        template<class data_t>
-        using MatterVars = ProcaField<ProcaPotential>::template Vars<data_t>;
+        template <class data_t>
+        using MatterVars = typename ProcaField<ProcaPotential>::template Vars<data_t>;
 
     public:
         ProcaSquared(double a_dx): m_deriv(a_dx){};
@@ -88,22 +93,26 @@ class ProcaSquared
         void compute(Cell<data_t> current_cell) const;
 };
 
-template <class matter_t>
+template <class matter_t, class background_t>
 class EnergyAndAngularMomentum
 {
     protected:
 
-        //typedef all grid variables
+        // Use the variable definition in ADMVars
         template <class data_t>
-        using Vars = typename MatterCCZ4<ProcaField<ProcaPotential>>::template Vars<data_t>;
+        using MetricVars = typename ADMVars::template Vars<data_t>;
+
+        template <class data_t>
+        using MatterVars = typename ProcaField<ProcaPotential>::template Vars<data_t>;
 
         const matter_t m_matter;
         const double m_dx;
         const std::array<double, CH_SPACEDIM> m_center;
         const FourthOrderDerivatives m_deriv;
+        background_t m_background;
 
     public:
-        EnergyAndAngularMomentum(double a_dx, matter_t a_matter, std::array<double, CH_SPACEDIM> a_center):m_matter{a_matter}, m_dx{a_dx}, m_center{a_center}, m_deriv{a_dx} {};
+        EnergyAndAngularMomentum(background_t a_background, double a_dx, matter_t a_matter, std::array<double, CH_SPACEDIM> a_center): m_background{a_background}, m_matter{a_matter}, m_dx{a_dx}, m_center{a_center}, m_deriv{a_dx} {};
 
         template <class data_t>
         void compute(Cell<data_t> current_cell) const;
