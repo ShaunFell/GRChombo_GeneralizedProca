@@ -1,6 +1,11 @@
 
+
 ### GeneralizedProca
-###  params_Dynamic_HighRes.txt
+###  params_Dynamic_HighRes_NoExcision.txt
+
+
+#### NOTES: This run tests chi relaxation with multiple of chi in RHS to resolve issue with quasi-isotropic coords
+####                Using CCZ4 with no excision
 
 ################################################## Filesystem parameters
 
@@ -8,7 +13,7 @@
 verbosity = 3
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/TEST_DYNAMIC"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23172598"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -46,6 +51,12 @@ regrid_interval   =  0 0 0 0 0 0
 #regrid_threshold = 0.005
 
 
+################################################## Chi Relaxation
+##################################################
+chi_relaxation_speed = 0.001
+chi_relaxation_time = 2.50
+
+
 ################################################## Physical constants
 ##################################################
 G_Newton = 1.0
@@ -61,7 +72,7 @@ kerr_spindir = 0 0 1 #along z-axis
 
 
 # Proca parameters
-proca_damping = 1.0
+proca_damping = 1.0 #kappa value for auxiliary Z field
 
 # Potential parameters
 proca_mass = 0.3
@@ -152,18 +163,33 @@ shift_Gamma_coeff = 0.75
 eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
-formulation = 1 # 1 for BSSN, 0 for CCZ4
-kappa1 = 0
+formulation = 0 # 1 for BSSN, 0 for CCZ4
+kappa1 = 0.1
 kappa2 = 0.
-kappa3 = 0
+kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
 # coefficient for KO numerical dissipation
-#sigma = 0.3 #default
 sigma = 0.3
 
 min_chi = 1.e-4
 min_lapse = 1.e-4
+
+
+
+################################################## Excision Parameters
+##################################################
+excision_with_AH = 0 ## Dont Activate. Horrible performance
+excision_with_chi = 0  ##Excise using apparent horizon chi
+excision_with_cutoff = 0 ##Excise using predefined cutoff
+
+## cutoff.  Also used for diagnostic excision. 
+inner_r = 0. #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
+
+## buffer region when excising diagnostics inside horizon
+AH_buffer = 0.97
+
+
 
 ################################################## Apparent Horizon Finder parameters
 ##################################################
@@ -171,7 +197,7 @@ min_lapse = 1.e-4
 AH_activate = 1
 
 ## NOTE: AH_num_ranks must be less or equal than cpu-per-task in job script
-AH_num_ranks = 2
+AH_num_ranks = 4
 AH_num_points_u = 49
 AH_num_points_v = 48
 AH_solve_interval = 1
@@ -185,7 +211,7 @@ AH_num_extra_vars = 1
 AH_extra_vars = chi
 
 
-AH_level_to_run = 5
+AH_level_to_run = 2
 AH_allow_re_attempt = 1
 AH_start_time = 0.
 AH_give_up_time = -1. # -1 to never
@@ -197,11 +223,6 @@ AH_expansion_radius_power = 1.
 AH_coords_subpath = "AH/"
 AH_stats_prefix = "../AH/AH_stats"
 AH_coords_prefix = "AH_coords"
-
-################################################## Excision Parameters
-##################################################
-excision_with_AH = 0 ## dont activate. I haven't debugged yet...
-excise_with_chi = 1
 
 
 ################################################## Extraction parameters
@@ -215,7 +236,6 @@ calculate_constraint_norms = 0
 
 num_extraction_radii = 2
 extraction_radii = 50.0 100.0
-inner_r = 0.28 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
 outer_r = 120.0
 extraction_levels = 2 2
 num_points_phi = 24

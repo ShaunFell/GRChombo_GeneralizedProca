@@ -68,6 +68,12 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("AH_activate", AH_activate, false);
 
         pp.load("AH_buffer", AH_buffer, 1.0);
+
+
+        //chi relaxation
+        pp.load("chi_relaxation_speed", relaxation_speed, 0.01);
+        pp.load("chi_relaxation_time", relaxation_time, 2.50);
+
     }
 
     void check_params()
@@ -127,6 +133,10 @@ class SimulationParameters : public SimulationParametersBase
     bool excise_with_chi;
     bool excise_with_cutoff;
     double AH_buffer;
+
+    //chi relaxation
+    double relaxation_time;
+    double relaxation_speed;
 
 };
 

@@ -1,5 +1,7 @@
-# See the wiki page for an explanation of the params!
-# https://github.com/GRChombo/GRChombo/wiki/Guide-to-parameters
+
+
+## ScalarField
+## Dynamical evolution 
 
 #################################################
 # Filesystem parameters
@@ -7,7 +9,7 @@
 verbosity = 3
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-GRChombo/ScalarField/GRChombo_Proca_23070641"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/ScalarField/Scalar_GRChombo_23173377"
 chk_prefix = ScalarField_
 plot_prefix = ScalarFieldp_
 # restart_file = ScalarField_000000.3d.hdf5
@@ -17,8 +19,8 @@ checkpoint_interval = 10
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 1
-num_plot_vars = 2
-plot_vars = chi phi
+num_plot_vars = 4
+plot_vars = chi phi Ham Mom
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -38,10 +40,7 @@ print_progress_only_to_rank_0 = 1
 
 # Change the gravitational constant of the Universe!
 # Default is 1.0, for standard geometric units
-# Here we decouple the evolution so the scalar evolved on the
-# metric background without backreaction (this avoids the need
-# to solve the constaints)
-G_Newton = 0.0
+G_Newton = 1.0
 
 # Scalar field initial data
 scalar_amplitude = 0.1
@@ -50,7 +49,7 @@ scalar_mass = 0.2
 
 # Kerr BH data
 kerr_mass = 1.0
-kerr_spin = 0.0
+kerr_spin = 0.99
 
 #################################################
 # Grid parameters
@@ -62,8 +61,8 @@ kerr_spin = 0.0
 # NB - if you have a non-cubic grid, you can specify 'N1' or 'N1_full',
 # 'N2' or 'N2_full' and 'N3' or 'N3_full' ( then dx_coarsest = L/N(max) )
 # NB - the N values need to be multiples of the block_factor
-N_full = 128
-L_full = 256
+N_full = 64
+L_full = 128
 
 # Maximum number of times you can regrid above coarsest level
 max_level = 6 # There are (max_level+1) grids, so min is zero
@@ -98,8 +97,8 @@ isPeriodic = 0 0 0
 # 0 = static, 1 = sommerfeld, 2 = reflective
 # 3 = extrapolating, 4 = mixed
 # (see BoundaryConditions.hpp for details)
-hi_boundary = 4 4 4
-lo_boundary = 2 2 2
+hi_boundary = 1 1 1
+lo_boundary = 1 1 1
 
 # if reflective boundaries selected, must set
 # parity of all vars (in order given by UserVariables.hpp)
@@ -149,10 +148,10 @@ shift_Gamma_coeff = 0.75
 eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
-formulation = 1 # 1 for BSSN, 0 for CCZ4
-kappa1 = 0.
+formulation = 0 # 1 for BSSN, 0 for CCZ4
+kappa1 = 0.1
 kappa2 = 0.
-kappa3 = 0.
+kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
 # coefficient for KO numerical dissipation

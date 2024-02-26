@@ -124,19 +124,6 @@ class ExcisionProcaEvolutionWithChi
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 #ifdef USE_AHFINDER
 template <class matter_t, class AHinterp_t> 
 class ExcisionProcaEvolutionWithAH

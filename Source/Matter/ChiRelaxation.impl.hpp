@@ -59,16 +59,19 @@ void ChiRelaxation<matter_t>::rhs_equation(
     const auto emtensor = my_matter.compute_emtensor(vars, d1, h_UU, chris.ULL);
     const auto ricci = CCZ4Geometry::compute_ricci(vars, d1, d2, h_UU, chris);
     const auto A_UU = raise_all(vars.A, h_UU);
-    const data_t tr_AA = compute_trace(vars.A, A_UU);
+    const data_t tr_AA = compute_trace(vars.A, A_UU)
+    const auto H { (ricci.scalar + (GR_SPACEDIM - 1.) * vars.K * vars.K / GR_SPACEDIM -
+         tr_AA - 16.0 * M_PI * m_G_Newton * emtensor.rho) };
 
     // Calculate the relaxation RHS for chi, all other vars RHS zero
     // Could have called ConstraintsMatter here, but it is hardly worth it
-    // The division by chi prevents it (usually) from doing chi=0 as a solution
+
+    //note: I (shaun) remove the division by zero since we use the kerr background in quasi-isotropic coordiantes
+    //          whose conformal factor goes to zero near the singularity
+    //I multiply by chi to resolves issues with Kerr in Quasi-isotropic coords. Chi goes to zero at center of BH.
+
     rhs.chi =
-        m_relax_speed *
-        (ricci.scalar + (GR_SPACEDIM - 1.) * vars.K * vars.K / GR_SPACEDIM -
-         tr_AA - 16.0 * M_PI * m_G_Newton * emtensor.rho) /
-        vars.chi;
+        m_relax_speed * H * vars.chi;
 }
 
 #endif /* CHIRELAXATION_IMPL_HPP_ */

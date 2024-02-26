@@ -21,6 +21,9 @@
 #include "WeylExtraction.hpp"
 #include "SmallDataIO.hpp"
 
+//Chi Relaxation
+#include "ChiRelaxation.hpp"
+
 
 //cell tagging
 #include "TaggingCriterion.hpp"
@@ -172,13 +175,25 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     //Moving puncture gauge to handle spacetime singularites
     ProcaPotential potential(m_p.potential_params);
     ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
-    if (m_p.max_spatial_derivative_order == 4){
-        MatterCCZ4RHS<ProcaFieldWithPotential, MovingPunctureGauge, FourthOrderDerivatives> my_ccz4_matter(proca_field, m_p.ccz4_params, m_dx, m_p.sigma, m_p.formulation, m_p.G_Newton);
-        BoxLoops::loop(my_ccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
-    } else if (m_p.max_spatial_derivative_order == 6 ) {
-        MatterCCZ4RHS<ProcaFieldWithPotential, MovingPunctureGauge, SixthOrderDerivatives> my_ccz4_matter(proca_field, m_p.ccz4_params, m_dx, m_p.sigma, m_p.formulation, m_p.G_Newton);
-        BoxLoops::loop(my_ccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
-    }
+
+    if (a_time > m_p.relaxation_time) 
+    {
+        //carry out normal CCZ4 evolution
+        if (m_p.max_spatial_derivative_order == 4){
+            MatterCCZ4RHS<ProcaFieldWithPotential, MovingPunctureGauge, FourthOrderDerivatives> my_ccz4_matter(proca_field, m_p.ccz4_params, m_dx, m_p.sigma, m_p.formulation, m_p.G_Newton);
+            BoxLoops::loop(my_ccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
+        } else if (m_p.max_spatial_derivative_order == 6 ) {
+            MatterCCZ4RHS<ProcaFieldWithPotential, MovingPunctureGauge, SixthOrderDerivatives> my_ccz4_matter(proca_field, m_p.ccz4_params, m_dx, m_p.sigma, m_p.formulation, m_p.G_Newton);
+            BoxLoops::loop(my_ccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
+        }
+    } else {
+        //perform chi relaxation
+        ChiRelaxation<ProcaFieldWithPotential> chi_relaxation (proca_field,  m_dx, m_p.relaxation_speed, m_p.G_Newton );
+        BoxLoops::loop(
+            chi_relaxation,
+            a_soln, a_rhs, EXCLUDE_GHOST_CELLS
+        );
+    } //end of relaxation if-statement
 
     if (m_p.excise_with_AH)
     {

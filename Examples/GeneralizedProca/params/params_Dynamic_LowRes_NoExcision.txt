@@ -1,7 +1,7 @@
 
 
 ### GeneralizedProca
-###  params_Fixed_HighRes_NoExcision.txt
+###  params_Dynamic_LowRes_NoExcision.txt
 
 ################################################## Filesystem parameters
 
@@ -9,7 +9,7 @@
 verbosity = 3
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/Fixed_GRChombo_Proca_23159655"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23173215"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -40,22 +40,22 @@ print_progress_only_to_rank_0 = 1
 activate_ham_tagging = 0
 activate_gauss_tagging = 0
 
-max_level = 5
+max_level = 4
 
 # using fixed grid right now. Uncomment when using Constraint tagging!!
-regrid_interval   =  0 0 0 0 0
+regrid_interval   =  0 0 0 0
 #regrid_threshold = 0.005
 
 
 ################################################## Chi Relaxation
 ##################################################
 chi_relaxation_speed = 0.01
-chi_relaxation_time = 2.50
+chi_relaxation_time = 0
 
 
 ################################################## Physical constants
 ##################################################
-G_Newton = 0.0
+G_Newton = 1.0
 
 ################################################## Initial Data parameters
 ##################################################
@@ -63,7 +63,7 @@ G_Newton = 0.0
 # Kerr parameters
 kerr_mass = 1.0
 kerr_spin = 0.99
-kerr_center = 64 64 64 # defauts to center
+kerr_center = 16 16 16 # defauts to center
 kerr_spindir = 0 0 1 #along z-axis
 
 
@@ -80,24 +80,24 @@ initial_proca_amplitude = 0.1
 ################################################## Grid parameters
 ##################################################
 
-N_full = 64
-L_full = 128
+N_full = 16
+L_full = 32
 
 # Max and min box sizes
-max_box_size = 16
-min_box_size = 16
+max_box_size = 8
+min_box_size = 8
 
 #for fixed grid tagging
 tag_buffer_size = 0
 
 #grid spacing between refinement levels
-grid_buffer_size = 32
+grid_buffer_size = 16
 # fill_ratio = 0.7
 # num_ghosts = 3
 # center = 256.0 256.0 256.0 # defaults to center of the grid
 
 #global scaling of refinement levels. Larger value equals larger refinement levels
-grid_scaling = 1.0
+grid_scaling = 2.0
 
 ################################################## Boundary Conditions parameters
 ##################################################
@@ -159,10 +159,11 @@ shift_Gamma_coeff = 0.75
 eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
-formulation = 1 # 1 for BSSN, 0 for CCZ4
-kappa1 = 0
+formulation = 0 # 1 for BSSN, 0 for CCZ4
+## Typical values: K1 = 0.1, K2 = 0, K3 = 1
+kappa1 = 0.1
 kappa2 = 0.
-kappa3 = 0
+kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
 # coefficient for KO numerical dissipation
@@ -181,7 +182,7 @@ excision_with_chi = 0  ##Excise using apparent horizon chi
 excision_with_cutoff = 0 ##Excise using predefined cutoff
 
 ## cutoff.  Also used for diagnostic excision
-inner_r = 0.28 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
+inner_r = 0.0 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
 
 ## buffer region when excising diagnostics inside horizon
 AH_buffer = 0.97
@@ -191,7 +192,7 @@ AH_buffer = 0.97
 ################################################## Apparent Horizon Finder parameters
 ##################################################
 
-AH_activate = 1
+AH_activate = 0
 
 ## NOTE: AH_num_ranks must be less or equal than cpu-per-task in job script
 AH_num_ranks = 4
