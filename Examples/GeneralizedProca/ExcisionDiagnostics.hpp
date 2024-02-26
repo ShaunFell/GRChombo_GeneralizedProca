@@ -47,6 +47,10 @@ class ExcisionDiagnostics
             //data_t cell_radius_BHCentered { sqrt ( TensorAlgebra::compute_dot_product(coords_BHCentered, coords_BHCentered) ) };
             data_t cell_radius_BHCentered { coords.get_radius() };
 
+            //can we have a more sophisticated way to excise inside horizon? Maybe based on conformal factor?
+            // We can maybe use the AH-finder to extract spin and use fitted formal in Radia thesis for conformal factor of horizon, then excise cells
+            //          whose conformal factor value is less than that of the horizon
+
             data_t cell_Inside_Cutoff { (double)simd_compare_lt(cell_radius_BHCentered, m_excision_width) };
 
             if (cell_Inside_Cutoff)

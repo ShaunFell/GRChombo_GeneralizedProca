@@ -1,0 +1,46 @@
+#######
+####### Compilation notes
+
+ - Chombo must be compiled and $CHOMBO_HOME must be set to (chombo_root)/lib
+ - For compilation for the Baden-Wurttemburg cluster, set 'cxxoptflags = -march=native'
+ - For optimizations, add also '-g3' to 'cxxoptflags'
+
+# Optional Flags
+To Use AH Finder, the 'XTRACPPFLAGS' must include
+                    -I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include -DUSE_AHFINDER
+and 'syslibflags' must also include 
+                    -L${PETSC_DIR}/${PETSC_ARCH}/lib -lpetsc
+
+
+#######
+####### Parameter Files 
+
+ - There are a number of parameter files in params/ folder that use different flags
+ - The one we've currently been using as our 'production' file is 'params_Dynamic_HighRes_AH.txt'
+        - This uses 6 refinement levels with a computational box size of 128 and activates the AH locator routine
+
+
+
+
+
+
+
+#######
+####### General Notes on Matter Field and Initial Conditions
+
+index of spatial Proca vector is DOWN
+index of electric field vector is UP
+shift vector is index UP
+
+advection terms are the gradient projected along the shift: \beta^j d_j x_i
+
+
+Current initial condition of Proca field:
+    X_x = A*exp(-r/r0) * 1/sqrt(gamma)
+    X_y = -X_x
+    X_z = 0
+    X_phi = 0
+    E^i = 0
+
+Kerr black metric is in form of quasi-isotropic coordinates
+
