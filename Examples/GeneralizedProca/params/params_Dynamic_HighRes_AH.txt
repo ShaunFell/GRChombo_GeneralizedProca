@@ -4,8 +4,12 @@
 ###  params_Dynamic_HighRes_NoExcision.txt
 
 
-#### NOTES: This run tests chi relaxation with multiple of chi in RHS to resolve issue with quasi-isotropic coords
-####                Using CCZ4 with no excision
+#### NOTES: 
+####                Using chi relaxation
+####                Using CCZ4 with diagnostic excision
+####                This run fixed the EM Tensor calculations
+####                 This run also uses the theoretical optimal amount of cpus, nodes, and cores
+####                            We use 40 nodes, 8 cores per rank, 16 tasks per node
 
 ################################################## Filesystem parameters
 
@@ -13,7 +17,7 @@
 verbosity = 10
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23193313"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23194037"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -183,13 +187,14 @@ min_lapse = 1.e-4
 ##################################################
 
 ## Excise diagnostic quantities using several methods
-excision_with_AH = 0 ## Dont Activate. Horrible performance
 excision_with_chi = 1  ##Excise using apparent horizon chi
-excision_with_cutoff = 0 ##Excise using predefined cutoff
 
+
+excision_with_cutoff = 0 ##Excise using predefined cutoff
 ## cutoff used for diagnostic excision. 
 inner_r = 0. 
 
+excision_with_AH = 0 ## Dont Activate. Horrible performance
 ## buffer region when excising diagnostics inside horizon. Only used for excision_with_AH
 AH_buffer = 0.97
 
@@ -201,7 +206,7 @@ AH_buffer = 0.97
 AH_activate = 1
 
 ## NOTE: AH_num_ranks must be less or equal than cpu-per-task in job script
-AH_num_ranks = 4
+AH_num_ranks = 8
 AH_num_points_u = 49
 AH_num_points_v = 48
 AH_solve_interval = 1
