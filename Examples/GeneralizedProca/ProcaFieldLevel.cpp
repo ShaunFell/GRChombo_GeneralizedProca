@@ -124,32 +124,51 @@ void ProcaFieldLevel::prePlotLevel()
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
     
-    if (m_p.AH_activate)
-        {
-            //shouldnt need to resolve AH
 
-            //query AH 
-            auto AH { m_bh_amr.m_ah_finder.get(0) };
-            double minRadius { AH -> get_min_F() };
+    //excision of diagnostics
+    if (m_p.excise_with_AH && m_p.AH_activate)
+    {
+        //shouldnt need to resolve AH
 
-            ExcisionDiagnosticsWithAH<ProcaFieldWithPotential> excisor (m_dx, m_p.center, minRadius, m_p.AH_buffer);
+        //query AH 
+        auto AH { m_bh_amr.m_ah_finder.get(0) };
+        double minRadius { AH -> get_min_F() };
 
-            BoxLoops::loop(
-                excisor,
-                m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-                disable_simd()
-            ); 
-            
-        } else 
-        {
-            ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
-            //excise diagnostics according to parameters set in parameter file
-            BoxLoops::loop(
-                excisor,
-                m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-                disable_simd()
-            ); 
-        };
+        ExcisionDiagnosticsWithAH<ProcaFieldWithPotential> excisor (m_dx, m_p.center, minRadius, m_p.AH_buffer);
+
+        BoxLoops::loop(
+            excisor,
+            m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+            disable_simd()
+        ); 
+
+    } else if (m_p.excise_with_chi && m_p.AH_activate) 
+    {
+        
+        //Excise with conformal factor
+        auto AH_mass { m_bh_amr.m_ah_finder.get(0) -> m_mass };
+        auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
+        double AH_dimless_spin { AH_spin / AH_mass };
+
+        ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
+
+        BoxLoops::loop(
+            excision_init,
+            m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
+        ) ;
+
+    } else if (m_p.excise_with_cutoff)
+    {
+    
+        ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
+        //excise diagnostics according to parameters set in parameter file
+        BoxLoops::loop(
+            excisor,
+            m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+            disable_simd()
+        ); 
+
+    }// end of excision
 
     #ifdef USE_AHFINDER
     //already calculated in specific PostTimeStep
@@ -195,40 +214,6 @@ void ProcaFieldLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
         );
     } //end of relaxation if-statement
 
-    if (m_p.excise_with_AH)
-    {
-        m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
-        double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
-        auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
-         ExcisionProcaEvolutionWithAH<ProcaFieldWithPotential, decltype(AH_Interp)> excision_init(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, m_p.inner_r);
-
-        //note use of decltype to capture type of AH_Interp, since we use 'auto' type above
-        BoxLoops::loop(
-           excision_init,
-            m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
-        );
-    } else if (m_p.excise_with_chi) 
-    {
-        
-        //Excise with conformal factor
-        auto AH_mass { m_bh_amr.m_ah_finder.get(0) -> m_mass };
-        auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
-        double AH_dimless_spin { AH_spin / AH_mass };
-
-        ExcisionProcaEvolutionWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
-
-        BoxLoops::loop(
-            excision_init,
-            m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
-        ) ;
-
-    } else if (m_p.excise_with_cutoff)
-    {
-        BoxLoops::loop(
-            ExcisionProcaEvolution<ProcaFieldWithPotential>(m_dx, m_p.center, m_p.inner_r),
-            a_soln, a_rhs, SKIP_GHOST_CELLS, disable_simd()
-        );
-    }// end of excision
     
 };
 
@@ -273,11 +258,12 @@ void ProcaFieldLevel::preTagCells()
                                                 potential)
                 ),
             m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
-            );
+        );
         
 
 
-        if (m_p.AH_activate)
+        //excision of diagnostics
+        if (m_p.excise_with_AH && m_p.AH_activate)
         {
             //shouldnt need to resolve AH
 
@@ -292,9 +278,25 @@ void ProcaFieldLevel::preTagCells()
                 m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
                 disable_simd()
             ); 
-            
-        } else 
+
+        } else if (m_p.excise_with_chi && m_p.AH_activate) 
         {
+            
+            //Excise with conformal factor
+            auto AH_mass { m_bh_amr.m_ah_finder.get(0) -> m_mass };
+            auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
+            double AH_dimless_spin { AH_spin / AH_mass };
+
+            ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
+
+            BoxLoops::loop(
+                excision_init,
+                m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
+            ) ;
+
+        } else if (m_p.excise_with_cutoff)
+        {
+        
             ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
             //excise diagnostics according to parameters set in parameter file
             BoxLoops::loop(
@@ -302,7 +304,8 @@ void ProcaFieldLevel::preTagCells()
                 m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
                 disable_simd()
             ); 
-        };
+
+        }// end of excision
     };
 
 };
@@ -341,6 +344,9 @@ void ProcaFieldLevel::specificPostTimeStep()
 {
     CH_TIME("ProcaFieldLevel::specificPostTimeStep");
 
+
+    //  ##### AH Finder ####
+
     #ifdef USE_AHFINDER
     if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time) && m_p.AH_activate)
     {
@@ -354,38 +360,11 @@ void ProcaFieldLevel::specificPostTimeStep()
 
         m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
 
-        //If we perform excision of matter variables using found Apparent Horizon
-        if (m_p.excise_with_AH) 
-        {
-
-            double num_AH_points { (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_u) * (double)(m_bh_amr.m_ah_finder.get(0) -> m_params.num_points_v) };
-            auto AH_Interp { m_bh_amr.m_ah_finder.get(0) -> get_ah_interp() };
-            ExcisionProcaEvolutionWithAH<ProcaFieldWithPotential, decltype(AH_Interp)> excision_init(m_dx, m_p.kerr_params.center, AH_Interp, num_AH_points, 0.97);
-
-            BoxLoops::loop(
-                excision_init,
-                m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
-            );
-
-        } else if (m_p.excise_with_chi) 
-        {
-            
-            //Excise with conformal factor
-            auto AH_mass { m_bh_amr.m_ah_finder.get(0) -> m_mass };
-            auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
-            double AH_dimless_spin { AH_spin / AH_mass };
-
-            ExcisionProcaEvolutionWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
-
-            BoxLoops::loop(
-                excision_init,
-                m_state_new, m_state_new, EXCLUDE_GHOST_CELLS, disable_simd()
-            );
-
-        } //end if excise_with_chi
-
     }
     #endif //USE_AHFINDER
+
+    
+    //  ##### Waveform Extraction ####
 
     bool first_step = (m_time == m_dt); //is this the first call of posttimestep?
 
@@ -413,33 +392,50 @@ void ProcaFieldLevel::specificPostTimeStep()
                 m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
             );
 
-            //excise within horizon
-            if (m_p.AH_activate)
-        {
-            //shouldnt need to resolve AH
+            //excision of diagnostics
+            if (m_p.excise_with_AH && m_p.AH_activate)
+            {
+                //shouldnt need to resolve AH
 
-            //query AH 
-            auto AH { m_bh_amr.m_ah_finder.get(0) };
-            double minRadius { AH -> get_min_F() };
+                //query AH 
+                auto AH { m_bh_amr.m_ah_finder.get(0) };
+                double minRadius { AH -> get_min_F() };
 
-            ExcisionDiagnosticsWithAH<ProcaFieldWithPotential> excisor (m_dx, m_p.center, minRadius, m_p.AH_buffer);
+                ExcisionDiagnosticsWithAH<ProcaFieldWithPotential> excisor (m_dx, m_p.center, minRadius, m_p.AH_buffer);
 
-            BoxLoops::loop(
-                excisor,
-                m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-                disable_simd()
-            ); 
+                BoxLoops::loop(
+                    excisor,
+                    m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+                    disable_simd()
+                ); 
+
+            } else if (m_p.excise_with_chi && m_p.AH_activate) 
+            {
+                
+                //Excise with conformal factor
+                auto AH_mass { m_bh_amr.m_ah_finder.get(0) -> m_mass };
+                auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
+                double AH_dimless_spin { AH_spin / AH_mass };
+
+                ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
+
+                BoxLoops::loop(
+                    excision_init,
+                    m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
+                ) ;
+
+            } else if (m_p.excise_with_cutoff)
+            {
             
-        } else 
-        {
-            ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
-            //excise diagnostics according to parameters set in parameter file
-            BoxLoops::loop(
-                excisor,
-                m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-                disable_simd()
-            ); 
-        };
+                ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
+                //excise diagnostics according to parameters set in parameter file
+                BoxLoops::loop(
+                    excisor,
+                    m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
+                    disable_simd()
+                ); 
+
+            }// end of excision
 
             if (m_level == min_level)
             {
@@ -456,6 +452,10 @@ void ProcaFieldLevel::specificPostTimeStep()
             }
         }
     }
+
+
+
+    //  ##### Constraint Norms ####
 
     if (m_p.calculate_constraint_norms)
     {

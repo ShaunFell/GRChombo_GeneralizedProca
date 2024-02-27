@@ -75,6 +75,72 @@ class ExcisionDiagnostics
 
 
 
+#ifdef USE_AHFINDER
+
+//Excise matter vars using conformal factor
+template <class matter_t> 
+class ExcisionDiagnosticsWithChi
+{
+    // Use matter_t class
+    template <class data_t>
+    using Vars = typename matter_t::template Vars<data_t>;
+
+    template <class data_t>
+    using MetricVars = CCZ4Vars::VarsWithGauge<data_t>;
+
+    protected:
+        const double m_dx; //grid spacing
+        const std::array<double, CH_SPACEDIM> m_center; //center of BH
+        double m_kerr_chi;
+
+    public:
+
+        //constructor
+        ExcisionDiagnosticsWithChi(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_kerr_spin = 0.): m_dx{a_dx}, m_center{a_center}
+        {
+            // Find the approximate location of the Horizon using fit to conformal factor in 
+            // https://api.repository.cam.ac.uk/server/api/core/bitstreams/320ef77b-f6ff-426a-852d-00e9c2007940/content
+            m_kerr_chi =  0.2666 * sqrt(1 - a_kerr_spin * a_kerr_spin);
+        };
+
+        void compute(const Cell<double> current_cell) const
+        {
+            const Coordinates<double> coords(current_cell, m_dx, m_center);
+
+            double chi_value { current_cell.template load_vars<MetricVars>().chi };
+
+            bool cell_Inside_Horizon {  chi_value < m_kerr_chi }; 
+
+            if (cell_Inside_Horizon)
+            {
+              current_cell.store_vars(0.0, c_gauss);
+              current_cell.store_vars(0.0, c_Asquared);
+              current_cell.store_vars(0.0, c_gnn);
+              current_cell.store_vars(0.0, c_Ham);
+              current_cell.store_vars(0.0, c_rho);
+              current_cell.store_vars(0.0, c_rhoJ);
+              current_cell.store_vars(0.0, c_rhoE);
+
+            } //excision
+
+        }//end of method def
+
+
+        
+       /*  double HorizonChi(double kerr_spin)
+        {
+            double Horizon_chi { 0.2666 * sqrt(1 - kerr_spin * kerr_spin) };
+
+            return Horizon_chi;
+        } */
+
+};//end of class def
+
+#endif //USE_AHFINDER
+
+
+
+
 
 #ifdef USE_AHFINDER
 //Excise matter vars using conformal factor

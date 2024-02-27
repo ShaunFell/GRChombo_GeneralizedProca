@@ -10,10 +10,10 @@
 ################################################## Filesystem parameters
 
 
-verbosity = 3
+verbosity = 10
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23172598"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23193313"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -44,12 +44,7 @@ print_progress_only_to_rank_0 = 1
 activate_ham_tagging = 0
 activate_gauss_tagging = 0
 
-max_level = 6
-
-# using fixed grid right now. Uncomment when using Constraint tagging!!
-regrid_interval   =  0 0 0 0 0 0
 #regrid_threshold = 0.005
-
 
 ################################################## Chi Relaxation
 ##################################################
@@ -87,6 +82,11 @@ initial_proca_amplitude = 0.1
 N_full = 64
 L_full = 128
 
+max_level = 8
+
+# using fixed grid right now. Uncomment when using Constraint tagging!!
+regrid_interval   =  0 0 0 0 0 0 0 0
+
 # Max and min box sizes
 max_box_size = 16
 min_box_size = 16
@@ -101,7 +101,9 @@ grid_buffer_size = 32
 # center = 256.0 256.0 256.0 # defaults to center of the grid
 
 #global scaling of refinement levels. Larger value equals larger refinement levels
-grid_scaling = 1.0
+grid_scaling = 1.666
+
+
 
 ################################################## Boundary Conditions parameters
 ##################################################
@@ -179,14 +181,16 @@ min_lapse = 1.e-4
 
 ################################################## Excision Parameters
 ##################################################
+
+## Excise diagnostic quantities using several methods
 excision_with_AH = 0 ## Dont Activate. Horrible performance
-excision_with_chi = 0  ##Excise using apparent horizon chi
+excision_with_chi = 1  ##Excise using apparent horizon chi
 excision_with_cutoff = 0 ##Excise using predefined cutoff
 
-## cutoff.  Also used for diagnostic excision. 
-inner_r = 0. #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
+## cutoff used for diagnostic excision. 
+inner_r = 0. 
 
-## buffer region when excising diagnostics inside horizon
+## buffer region when excising diagnostics inside horizon. Only used for excision_with_AH
 AH_buffer = 0.97
 
 
@@ -211,7 +215,7 @@ AH_num_extra_vars = 1
 AH_extra_vars = chi
 
 
-AH_level_to_run = 2
+AH_level_to_run = 1
 AH_allow_re_attempt = 1
 AH_start_time = 0.
 AH_give_up_time = -1. # -1 to never

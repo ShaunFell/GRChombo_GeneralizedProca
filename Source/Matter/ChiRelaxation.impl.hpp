@@ -59,7 +59,7 @@ void ChiRelaxation<matter_t>::rhs_equation(
     const auto emtensor = my_matter.compute_emtensor(vars, d1, h_UU, chris.ULL);
     const auto ricci = CCZ4Geometry::compute_ricci(vars, d1, d2, h_UU, chris);
     const auto A_UU = raise_all(vars.A, h_UU);
-    const data_t tr_AA = compute_trace(vars.A, A_UU)
+    const data_t tr_AA = compute_trace(vars.A, A_UU);
     const auto H { (ricci.scalar + (GR_SPACEDIM - 1.) * vars.K * vars.K / GR_SPACEDIM -
          tr_AA - 16.0 * M_PI * m_G_Newton * emtensor.rho) };
 

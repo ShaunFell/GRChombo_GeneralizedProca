@@ -21,6 +21,12 @@ and 'syslibflags' must also include
 
 
 
+#######
+####### Simulation Optimization
+
+ - For a computational box size of L=128, we need 8 refinement levels and a global grid scaling of grid_scaling=2.0
+         - This ensures the Horizon is sufficiently resolved, in accordance with Katy's recommendations for sufficient resolution
+
 
 
 

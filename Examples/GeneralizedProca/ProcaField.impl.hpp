@@ -58,30 +58,30 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
 
     /////Components of EM tensor
 
-    // Eulerian Energy //Checked. Agrees with Mathematica notebook
-    out.rho = 1. / 2. * Enorm + 2 * dVdA * vars.phi * vars.phi + V;
+    // Eulerian Energy //Checked.
+    out.rho = 1. / 2. * Enorm + dVdA * vars.phi * vars.phi + 0.5*V;
     FOR4(i, j, k, l)
     {
         out.rho += 1. / 2. * gamma_UU[k][i] * gamma_UU[l][j] * DA[i][j] *
                    DA_antisym[k][l];
     };
 
-    // Eulerian Momentum //Checked. Agrees with Mathematica notebook.
+    // Eulerian Momentum //Checked.
     FOR1(i)
     {
         out.Si[i] = 0; // zero initialize
-        out.Si[i] += 2 * vars.phi * dVdA * vars.Avec[i];
+        out.Si[i] +=  vars.phi * dVdA * vars.Avec[i];
 
         FOR1(j) { out.Si[i] += vars.Evec[j] * DA_antisym[i][j]; };
     };
 
-    // Eulerian Stress //Chedked. Agrees with Mathematica notebook.
+    // Eulerian Stress //Checked. 
     FOR2(i, j)
     {
         out.Sij[i][j] = 0; // zero initialize
 
-        out.Sij[i][j] += 2 * dVdA * vars.Avec[i] * vars.Avec[j] -
-                         gamma_LL[i][j] * V + 1. / 2. * gamma_LL[i][j] * Enorm;
+        out.Sij[i][j] +=  dVdA * vars.Avec[i] * vars.Avec[j] -
+                         gamma_LL[i][j] * V + 0.5 * gamma_LL[i][j] * Enorm;
 
         FOR2(l, k)
         {
@@ -91,7 +91,7 @@ emtensor_t<data_t> ProcaField<potential_t>::compute_emtensor(
 
             FOR2(m, n)
             {
-                out.Sij[i][j] += -gamma_LL[i][j] * gamma_UU[m][l] *
+                out.Sij[i][j] += - 0.5 * gamma_LL[i][j] * gamma_UU[m][l] *
                                  gamma_UU[n][k] * DA[m][n] * DA_antisym[l][k];
             };
         };
