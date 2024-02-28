@@ -1,8 +1,15 @@
 #!/bin/bash
 
 #SBATCH --job-name=GRChombo_Proca
-export environment="testing"  ## values should be either 'prod' for production or 'testing' for testing
 
+
+## redirect output
+#SBATCH --output="/home/hd/hd_hd/hd_pb293/JobScripts/GRChombo/SlurmOut/%x_%j.out"
+#SBATCH --error="/home/hd/hd_hd/hd_pb293/JobScripts/GRChombo/SlurmOut/%x_%j.err"
+
+## send email on updates
+#SBATCH --mail-type=BEGIN,END,FAIL,REQUEUE
+#SBATCH --mail-user=shaundbfell@gmail.com
 
 #############################################
 ## COMMENTED: set when calling sbatch
@@ -25,22 +32,17 @@ export environment="testing"  ## values should be either 'prod' for production o
 #### memory per cpu
 ###SBATCH --mem-per-cpu=1950mb
 
-## redirect output
-#SBATCH --output="/home/hd/hd_hd/hd_pb293/JobScripts/GRChombo/SlurmOut/%x_%j.out"
-#SBATCH --error="/home/hd/hd_hd/hd_pb293/JobScripts/GRChombo/SlurmOut/%x_%j.err"
 
-## send email on updates
-#SBATCH --mail-type=BEGIN,END,FAIL,REQUEUE
-#SBATCH --mail-user=shaundbfell@gmail.com
+export environment="testing"  ## values should be either 'prod' for production or 'testing' for testing
 
 # CD to directory with exectable and params folder
-cd /home/hd/hd_hd/hd_pb293/Documents/Github/ProblemsWithProca/proca-on-kerr/Examples/GeneralizedProca
+cd "/home/hd/hd_hd/hd_pb293/Documents/Github/ProblemsWithProca/proca-on-kerr/Examples/GeneralizedProca"
 
 module load compiler/gnu/10.2 mpi/openmpi lib/hdf5/1.12.2-gnu-10.2-openmpi-4.1 numlib/gsl/2.6-gnu-10.2 numlib/petsc/3.17.2-gnu-10.2-openmpi-4.1
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PETSC_DIR}/lib
 
 # NO OVERLOAD allowed
-export MPIRUN_OPTIONS="--bind-to core --map-by socket:PE=${OMP_NUM_THREADS} --report-bindings"
+export MPIRUN_OPTIONS="--bind-to core --map-by socket:PE=${OMP_NUM_THREADS}"
 
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 export NUM_CORES=${SLURM_NTASKS}*${OMP_NUM_THREADS}

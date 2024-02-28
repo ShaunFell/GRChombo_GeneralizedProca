@@ -6,7 +6,7 @@
 ## NB you will need ffmpeg installed to make the movie
 #
 
-import glob, os
+import glob, os, sys
 
 # --------------------------------------------------------------------------
 ## Inputs - you need to update these!
@@ -15,25 +15,38 @@ import glob, os
 # file details
 #plt_prefix = "MyPlot_plt"
 #path_to_hdf5_files = "/path_to_file/"
-#plt_prefix = "GeneralizedProcap_"
-plt_prefix = "SuperradianceM0P_"
+plt_prefix = "GeneralizedProcap_"
+#plt_prefix = "SuperradianceM0P_"
 #path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/testing/multiplenode_g1_l0_2/hdf5/"
-path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/katysSuperradiance/home/hd/hd_hd/hd_pb293/WS_GRChombo/katysSuperradiance/hdf5/"
+#path_to_hdf5_files = "/home/hd/hd_hd/hd_pb293/WS_GRChombo/katysSuperradiance/home/hd/hd_hd/hd_pb293/WS_GRChombo/katysSuperradiance/hdf5/"
+path_to_hdf5_files = sys.argv[1]
 
 # plot details
 # select variable 
 #plot_variables = ["Asquared", "Gauss", "Ham",  "gnn", "Ham_abs_sum"]
-plot_variables = ["rho", "gauss"]
+plot_variables = ["rhoE", "Ham", "Asquared"]
 #output_directory = "./g1_l0/Plots/"
-output_directory = "./KatysSuperradiance/Plots/"
+if len(sys.argv) >= 2:
+	output_directory = sys.argv[2]
+else:
+	output_directory = "/home/hd/hd_hd/hd_pb293/Documents/Github/ProblemsWithProca/proca-on-kerr/Examples/GeneralizedProca/Plots"
+
+if not os.path.exists(output_directory):
+	os.mkdir(output_directory)
+if not os.path.exists(output_directory+"../Movies"):
+	os.mkdir(output_directory+"../Movies")
+
+print("HDF5 file path: " + path_to_hdf5_files)
+print("Output directory: " + output_directory)
+
 # max and min values for colourbar
 set_min_max = 0 # 1 for true, 0 for false
 min_value = 0.0
 max_value = 1.0
 # slice origin and normal direction
-origin_point_x = 128
-origin_point_y = 128
-origin_point_z = 128
+origin_point_x = 64
+origin_point_y = 64
+origin_point_z = 64
 normal_in_x = 0
 normal_in_y = 0
 normal_in_z = 1
@@ -140,9 +153,26 @@ def setup_slice_plot(variableToPlot) :
 	SaveWindowAtts.resConstraint = SaveWindowAtts.EqualWidthHeight 
 	SetSaveWindowAttributes(SaveWindowAtts)
 	SaveWindow()
+
+
+def PlotFiles():
+	files = glob.glob(path_to_hdf5_files + "*.3d.hdf5")
+	plot_files = [x for x in files if plt_prefix in x]
+	return plot_files
+
+def MultipleDatabase():
 	
+	if len(PlotFiles())>1:
+		return True
+	else:
+		return False
+
 def make_slice_plots(variableToPlot, hdf5files, hdf5files_base) :
-	OpenDatabase(hdf5files_base + "*" + ".3d.hdf5 database", 0)
+	if MultipleDatabase():
+		OpenDatabase(hdf5files_base + "*" + ".3d.hdf5 database", 0)
+	else:
+		OpenDatabase(PlotFiles()[0], 0)
+
 	hdf5file = hdf5files[0]
 	print("Setup and plot first slice from file : " + hdf5file)
 	setup_slice_plot(variableToPlot)
@@ -158,6 +188,8 @@ def make_slice_plots(variableToPlot, hdf5files, hdf5files_base) :
 		SaveWindow()
 	DeleteAllPlots()
 
+
+
 def main():
 	hdf5files_base = path_to_hdf5_files + plt_prefix
 	hdf5files = glob.glob(hdf5files_base + "*.hdf5")
@@ -165,15 +197,14 @@ def main():
 	print("Running Plot routines!")
 
 	for plotvar in plot_variables:
-
-		if plotvar=="Asquared":
-			continue
-
 		print ("Plotting slices for {0}...".format(plotvar))
 		make_slice_plots(plotvar, hdf5files, hdf5files_base)
-		print ("Making a movie...")
-		os.system('ffmpeg -r 5 -f image2 -s 1920x1080 -i ' + output_directory+str(plotvar) + '%04d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p ' + output_directory+"../Movies/"+str(plotvar) + '.mp4')
-		print ("I've finished!")
+
+		if MultipleDatabase():
+			print ("Making a movie...")
+			os.system('ffmpeg -r 5 -f image2 -s 1920x1080 -i ' + output_directory+str(plotvar) + '%04d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p ' + output_directory+"../Movies/"+str(plotvar) + '.mp4')
+
+		print("I've finished!")
 	
 	os.remove("./visitlog.py")
 	exit()

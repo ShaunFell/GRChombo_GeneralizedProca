@@ -28,11 +28,12 @@ class ExcisionDiagnostics
         const double m_dx; //grid spacing
         const double m_excision_width;
         const std::array<double, CH_SPACEDIM> m_center; //center of BH
+        const double m_outer_radius;
 
     public:
 
         //constructor
-        ExcisionDiagnostics(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_excision_cut = 1): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_cut}
+        ExcisionDiagnostics(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_excision_cut = 1, double a_outer_radius = 200.0): m_dx{a_dx}, m_center{a_center}, m_excision_width{a_excision_cut}, m_outer_radius{a_outer_radius}
         {
         };
 
@@ -53,7 +54,7 @@ class ExcisionDiagnostics
 
             data_t cell_Inside_Cutoff { (double)simd_compare_lt(cell_radius_BHCentered, m_excision_width) };
 
-            if (cell_Inside_Cutoff)
+            if (cell_Inside_Cutoff || coords.get_radius() > m_outer_radius)
             {
               current_cell.store_vars(0.0, c_gauss);
               current_cell.store_vars(0.0, c_Asquared);
@@ -92,11 +93,12 @@ class ExcisionDiagnosticsWithChi
         const double m_dx; //grid spacing
         const std::array<double, CH_SPACEDIM> m_center; //center of BH
         double m_kerr_chi;
+        double m_outer_radius;
 
     public:
 
         //constructor
-        ExcisionDiagnosticsWithChi(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_kerr_spin = 0.): m_dx{a_dx}, m_center{a_center}
+        ExcisionDiagnosticsWithChi(const double a_dx, const std::array<double, CH_SPACEDIM> a_center, double a_kerr_spin = 0., double a_outer_radius = 200.0): m_dx{a_dx}, m_center{a_center}, m_outer_radius{a_outer_radius}
         {
             // Find the approximate location of the Horizon using fit to conformal factor in 
             // https://api.repository.cam.ac.uk/server/api/core/bitstreams/320ef77b-f6ff-426a-852d-00e9c2007940/content
@@ -111,7 +113,7 @@ class ExcisionDiagnosticsWithChi
 
             bool cell_Inside_Horizon {  chi_value < m_kerr_chi }; 
 
-            if (cell_Inside_Horizon)
+            if (cell_Inside_Horizon || coords.get_radius() > m_outer_radius)
             {
               current_cell.store_vars(0.0, c_gauss);
               current_cell.store_vars(0.0, c_Asquared);

@@ -29,12 +29,11 @@ and ```syslibflags``` must also include
 
 # Simulation Optimization
 
- - For a computational box size of L=128, we need 8 refinement levels and a global grid scaling of *grid_scaling=2.0*
-         - This ensures the Horizon is sufficiently resolved, in accordance with Katy's recommendations for sufficient resolution
- 
- - A simulation size of L=128 N=64 with 8 refinement levels and grid_scaling=2.0 has 20480 cells
-         - With a min/max box size of 16, this is 1280 boxes
-         - For optional load balacing, we should have ~ 1 box per process. For 4 cpus per process, 128 cores per node, we need 40 nodes
+- For a computational box size of L=128, we need 8 refinement levels and a global grid scaling of *grid_scaling=2.0*
+- A simulation size of L=224 N=128, we need 8 refinement levels and a global grid scaling of *grid_scaling=2.0* 
+        
+    - This ensures the Horizon is sufficiently resolved, in accordance with Katy's recommendations for sufficient resolution
+
  
  - We can determine the number of cells in the simulation by doing a quick test run using the exact parameter file you want. 
             Then use VISIT to execute a query on the NumZones. This returns the number of cells. Divide this number by the min box size

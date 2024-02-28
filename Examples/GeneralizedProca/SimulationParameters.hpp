@@ -46,11 +46,11 @@ class SimulationParameters : public SimulationParametersBase
         //constants
         pp.load("G_Newton", G_Newton);
 
-        pp.load("calculate_constraint_norms", calculate_constraint_norms, false);
-
         //extraction params
         pp.load("inner_r", inner_r, 0.0);
         pp.load("outer_r", outer_r, 200.0);
+        pp.load("outer_excision", outer_excision, 200.0);
+        pp.load("calculate_norms", calculate_norms, true);
 
         //tagging
         pp.load("activate_ham_tagging", activate_ham_tagging, false);
@@ -122,7 +122,6 @@ class SimulationParameters : public SimulationParametersBase
     ProcaField<ProcaPotential>::params_t proca_params;
     InitialProcaData::init_params_t initialdata_params;
 
-    bool calculate_constraint_norms;
     bool activate_ham_tagging;
     bool activate_gauss_tagging;
     double grid_scaling;
@@ -133,6 +132,8 @@ class SimulationParameters : public SimulationParametersBase
     bool excise_with_chi;
     bool excise_with_cutoff;
     double AH_buffer;
+    double outer_excision;
+    double calculate_norms;
 
     //chi relaxation
     double relaxation_time;

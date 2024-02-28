@@ -150,7 +150,7 @@ void ProcaFieldLevel::prePlotLevel()
         auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
         double AH_dimless_spin { AH_spin / AH_mass };
 
-        ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
+        ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin, m_p.outer_excision);
 
         BoxLoops::loop(
             excision_init,
@@ -287,7 +287,7 @@ void ProcaFieldLevel::preTagCells()
             auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
             double AH_dimless_spin { AH_spin / AH_mass };
 
-            ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
+            ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin, m_p.outer_excision);
 
             BoxLoops::loop(
                 excision_init,
@@ -417,7 +417,7 @@ void ProcaFieldLevel::specificPostTimeStep()
                 auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
                 double AH_dimless_spin { AH_spin / AH_mass };
 
-                ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin);
+                ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin, m_p.outer_excision);
 
                 BoxLoops::loop(
                     excision_init,
@@ -457,11 +457,15 @@ void ProcaFieldLevel::specificPostTimeStep()
 
     //  ##### Constraint Norms ####
 
-    if (m_p.calculate_constraint_norms)
+    if (m_p.calculate_norms)
     {
         fillAllGhosts();
+
+        EnergyAndAngularMomentum<ProcaFieldWithPotential> EM(m_dx, proca_field, m_p.center);
         BoxLoops::loop(
-            Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
+            make_compute_pack(
+                Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3))
+            ),
             m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
 
@@ -470,15 +474,18 @@ void ProcaFieldLevel::specificPostTimeStep()
             AMRReductions<VariableType::diagnostic> amr_reductions(m_gr_amr);
             double L2_Ham = amr_reductions.norm(c_Ham);
             double L2_Mom = amr_reductions.norm(Interval(c_Mom1, c_Mom3));
+            double L2_rho = amr_reductions.norm(c_rho);
+            double L2_rhoE = amr_reductions.norm(c_rhoE);
+            double L2_rhoJ = amr_reductions.norm(c_rhoJ);
             SmallDataIO constraint_file(m_p.data_path + "constraint_norms",
                                         m_dt, m_time, m_restart_time, SmallDataIO::APPEND, first_step
             );
             constraint_file.remove_duplicate_time_data();
             if (first_step)
             {
-                constraint_file.write_header_line({"L^2_Ham", "L^2_Mom"});
+                constraint_file.write_header_line({"L^2_Ham", "L^2_Mom", "L^2_rho", "L^2_rhoE", "L^2_rhoJ"});
             }
-            constraint_file.write_time_data_line({L2_Ham, L2_Mom});
+            constraint_file.write_time_data_line({L2_Ham, L2_Mom, L2_rho, L2_rhoE, L2_rhoJ});
         }
     }
 

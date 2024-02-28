@@ -56,7 +56,7 @@ activate_gauss_tagging = 0
 ################################################## Chi Relaxation
 ##################################################
 chi_relaxation_speed = 0.001
-chi_relaxation_time = 0
+chi_relaxation_time = 2.50
 
 
 ################################################## Physical constants
@@ -69,7 +69,7 @@ G_Newton = 1.0
 # Kerr parameters
 kerr_mass = 1.0
 kerr_spin = 0.99
-kerr_center = 32 32 32 # defauts to center
+kerr_center = 112 112 112 # defauts to center
 kerr_spindir = 0 0 1 #along z-axis
 
 
@@ -86,10 +86,10 @@ initial_proca_amplitude = 0.1
 ################################################## Grid parameters
 ##################################################
 
-N_full = 64
-L_full = 64
+N_full = 128
+L_full = 224
 
-max_level = 4
+max_level = 8
 
 # using fixed grid right now. Uncomment when using Constraint tagging!!
 regrid_interval   =  0 0 0 0 0 0 0 0
@@ -190,7 +190,7 @@ min_lapse = 1.e-4
 ##################################################
 
 ##outer radius to excise quantities
-outer_excision = 30
+outer_excision = 60
 
 ## Excise diagnostic quantities using several methods
 excision_with_chi = 1  ##Excise using apparent horizon chi
@@ -245,8 +245,8 @@ AH_coords_prefix = "AH_coords"
 
 # extraction_center = 256 256 256 # defaults to center
 
-activate_extraction = 0
-write_extraction = 0
+activate_extraction = 1
+calculate_constraint_norms = 1
 
 
 num_extraction_radii = 2
@@ -267,6 +267,7 @@ modes = 2 0 # l m for spherical harmonics
 
 integral_file_prefix = "Weyl4_mode_"
 
+write_extraction = 0
 extraction_subpath = "/extraction" # directory for 'write_extraction = 1'
 extraction_file_prefix = "Weyl4_extraction_"
 

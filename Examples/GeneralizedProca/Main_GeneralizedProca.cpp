@@ -76,7 +76,9 @@ int runGRChombo(int argc, char *argv[])
     auto task = [](GRAMRLevel *level)
     {
         if (level->time() == 0.)
+        {
             level->specificPostTimeStep();
+        }
     };
 
     // call 'now' really now
