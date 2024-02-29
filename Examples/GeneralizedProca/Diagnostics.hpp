@@ -16,7 +16,7 @@
 //calculate constraint violation of the Proca field
 
 template <class potential_t>
-class ProcaConstraint
+class GaussConstraint
 {
 
     protected:
@@ -28,7 +28,7 @@ class ProcaConstraint
 
     public:
         //constructor
-        ProcaConstraint(double dx, double a_vector_mass, double a_vector_damping, const potential_t potential);
+        GaussConstraint(double dx, double a_vector_mass, double a_vector_damping, const potential_t potential);
 
         // Use the variable definition in CCZ4
         template <class data_t>
@@ -43,7 +43,7 @@ class ProcaConstraint
 };
 
 template <class potential_t>
-class EffectiveMetric
+class SecondClassConstraint
 {
     protected:
 
@@ -57,7 +57,7 @@ class EffectiveMetric
         using Vars = typename MatterCCZ4<ProcaField<potential_t>>::template Vars<data_t>;
 
     public:
-        EffectiveMetric(double dx, double a_vector_mass, double a_vector_damping, const potential_t a_potential):
+        SecondClassConstraint(double dx, double a_vector_mass, double a_vector_damping, const potential_t a_potential):
             m_deriv(dx), m_vector_mass{a_vector_mass}, m_vector_damping{a_vector_damping}, m_potential{a_potential}
         {
         };

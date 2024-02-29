@@ -101,8 +101,8 @@ void ProcaFieldLevel::prePlotLevel()
     fillAllGhosts();
     ProcaPotential potential(m_p.potential_params);
     ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
-    ProcaConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
-    EffectiveMetric<ProcaPotential> proca_eff_met(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
+    GaussConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
+    SecondClassConstraint<ProcaPotential> proca_eff_met(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
     ProcaSquared Asquared(m_dx);
     EnergyAndAngularMomentum<ProcaFieldWithPotential> EM(m_dx, proca_field, m_p.center);
 
@@ -239,7 +239,7 @@ void ProcaFieldLevel::preTagCells()
         //setup class instances
         ProcaPotential potential(m_p.potential_params);
         ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
-        ProcaConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
+        GaussConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
 
 
         //compute Hamiltonian and Guass diagnostics on each cell of current level as these are required for tagging
@@ -252,7 +252,7 @@ void ProcaFieldLevel::preTagCells()
                                                             c_Ham_abs_sum,
                                                             Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
                                                             ),
-                ProcaConstraint<ProcaPotential>(m_dx, 
+                GaussConstraint<ProcaPotential>(m_dx, 
                                                 m_p.potential_params.mass, 
                                                 m_p.proca_params.vector_damping, 
                                                 potential)
@@ -461,6 +461,8 @@ void ProcaFieldLevel::specificPostTimeStep()
     {
         fillAllGhosts();
 
+        ProcaPotential potential(m_p.potential_params);
+        ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
         EnergyAndAngularMomentum<ProcaFieldWithPotential> EM(m_dx, proca_field, m_p.center);
         BoxLoops::loop(
             make_compute_pack(
@@ -474,18 +476,19 @@ void ProcaFieldLevel::specificPostTimeStep()
             AMRReductions<VariableType::diagnostic> amr_reductions(m_gr_amr);
             double L2_Ham = amr_reductions.norm(c_Ham);
             double L2_Mom = amr_reductions.norm(Interval(c_Mom1, c_Mom3));
-            double L2_rho = amr_reductions.norm(c_rho);
-            double L2_rhoE = amr_reductions.norm(c_rhoE);
-            double L2_rhoJ = amr_reductions.norm(c_rhoJ);
+            double SUM_rho = amr_reductions.sum(c_rho);
+            double SUM_rhoE = amr_reductions.sum(c_rhoE);
+            double SUM_rhoJ = amr_reductions.sum(c_rhoJ);
+
             SmallDataIO constraint_file(m_p.data_path + "constraint_norms",
                                         m_dt, m_time, m_restart_time, SmallDataIO::APPEND, first_step
             );
             constraint_file.remove_duplicate_time_data();
             if (first_step)
             {
-                constraint_file.write_header_line({"L^2_Ham", "L^2_Mom", "L^2_rho", "L^2_rhoE", "L^2_rhoJ"});
+                constraint_file.write_header_line({"L^2_Ham", "L^2_Mom", "SUM_rho", "SUM_rhoE", "SUM_rhoJ"});
             }
-            constraint_file.write_time_data_line({L2_Ham, L2_Mom, L2_rho, L2_rhoE, L2_rhoJ});
+            constraint_file.write_time_data_line({L2_Ham, L2_Mom, SUM_rho, SUM_rhoE, SUM_rhoJ});
         }
     }
 

@@ -20,7 +20,7 @@ output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChomb
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 
-restart_file = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23196687/hdf5/GeneralizedProca_000000.3d.hdf5"
+#restart_file = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23196687/hdf5/GeneralizedProca_000000.3d.hdf5"
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 checkpoint_interval = 1

@@ -1,3 +1,8 @@
+//   Note: Evolution excision should not be used with G=1 since this introduces an additional boundary in the space
+//                  which the derivative stencils cannot take into account. This will introduce horrible discontinuities that
+//                  destroy the simulation. 
+//              ONLY USE WITH G=0
+
 #ifndef EXCISIONPROCAEVOLUTION_H_INCLUDED
 #define EXCISIONPROCAEVOLUTION_H_INCLUDED
 
@@ -56,9 +61,6 @@ class ExcisionProcaEvolution
 
         }//end of method def
 };//end of class def
-
-
-
 
 
 

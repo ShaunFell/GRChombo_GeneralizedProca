@@ -71,11 +71,6 @@ class ExcisionDiagnostics
 
 };
 
-
-
-
-
-
 #ifdef USE_AHFINDER
 
 //Excise matter vars using conformal factor
@@ -126,15 +121,6 @@ class ExcisionDiagnosticsWithChi
             } //excision
 
         }//end of method def
-
-
-        
-       /*  double HorizonChi(double kerr_spin)
-        {
-            double Horizon_chi { 0.2666 * sqrt(1 - kerr_spin * kerr_spin) };
-
-            return Horizon_chi;
-        } */
 
 };//end of class def
 

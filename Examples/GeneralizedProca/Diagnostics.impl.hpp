@@ -10,7 +10,7 @@
 
 //Proca constraint constructor
 template <class potential_t>
-ProcaConstraint<potential_t>::ProcaConstraint(double dx, double a_vector_mass, double a_vector_damping, const potential_t potential): 
+GaussConstraint<potential_t>::GaussConstraint(double dx, double a_vector_mass, double a_vector_damping, const potential_t potential): 
 m_deriv(dx), m_vector_mass(a_vector_mass), m_vector_damping(a_vector_damping), m_potential(potential)
 {
 };
@@ -18,7 +18,7 @@ m_deriv(dx), m_vector_mass(a_vector_mass), m_vector_damping(a_vector_damping), m
 //Proca constraint calculator
 template <class potential_t>
 template <class data_t>
-data_t ProcaConstraint<potential_t>::constraint_equations(Cell<data_t> current_cell) const
+data_t GaussConstraint<potential_t>::constraint_equations(Cell<data_t> current_cell) const
 {
     //load variables from Chombo grid
     const auto vars = current_cell.template load_vars<Vars>();
@@ -66,7 +66,7 @@ data_t ProcaConstraint<potential_t>::constraint_equations(Cell<data_t> current_c
 
 template <class potential_t>
 template<class data_t>
-void ProcaConstraint<potential_t>::compute(Cell<data_t> current_cell) const
+void GaussConstraint<potential_t>::compute(Cell<data_t> current_cell) const
 {
     data_t gauss_constraint { constraint_equations(current_cell) };
 
@@ -76,7 +76,7 @@ void ProcaConstraint<potential_t>::compute(Cell<data_t> current_cell) const
 
 template <class potential_t>
 template<class data_t>
-void EffectiveMetric<potential_t>::compute(Cell<data_t> current_cell) const
+void SecondClassConstraint<potential_t>::compute(Cell<data_t> current_cell) const
 {
     //load variables from Chombo grid
     const auto vars = current_cell.template load_vars<Vars>();
