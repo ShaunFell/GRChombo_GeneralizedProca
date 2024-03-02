@@ -1,17 +1,26 @@
 
 
-###  params_Fixed_HighRes.txt
+### GeneralizedProca
+###  params_Dynamic_HighRes_NoExcision.txt
+
+
+#### NOTES: 
+####                Using chi relaxation
+####                Using CCZ4 with diagnostic excision
+####                Using outer excision of diagnostics
+####                Starting simulation from checkpoint file
 
 ################################################## Filesystem parameters
 
 
-verbosity = 3
+verbosity = 10
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/Fixed_GRChombo_Proca_23152899"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23197690"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
-#restart_file = GeneralizedProca_000003.3d.hdf5
+
+#restart_file = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23196687/hdf5/GeneralizedProca_000000.3d.hdf5"
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 checkpoint_interval = 1
@@ -34,21 +43,25 @@ print_progress_only_to_rank_0 = 1
 # ignore_checkpoint_name_mismatch = 0
 # write_plot_ghosts = 0
 
+#calculate integrals of matter densities
+calculate_norms = 1
+
 ################################################# constraint tagging
 ##################################################
 activate_ham_tagging = 0
 activate_gauss_tagging = 0
 
-max_level = 7
-
-# using fixed grid right now. Uncomment when using Constraint tagging!!
-regrid_interval   =  0 0 0 0 0 0 0
 #regrid_threshold = 0.005
+
+################################################## Chi Relaxation
+##################################################
+chi_relaxation_speed = 0.001
+chi_relaxation_time = 2.50
 
 
 ################################################## Physical constants
 ##################################################
-G_Newton = 0.0
+G_Newton = 1.0
 
 ################################################## Initial Data parameters
 ##################################################
@@ -61,7 +74,7 @@ kerr_spindir = 0 0 1 #along z-axis
 
 
 # Proca parameters
-proca_damping = 1.0
+proca_damping = 1.0 #kappa value for auxiliary Z field
 
 # Potential parameters
 proca_mass = 0.3
@@ -75,6 +88,11 @@ initial_proca_amplitude = 0.1
 
 N_full = 64
 L_full = 128
+
+max_level = 8
+
+# using fixed grid right now. Uncomment when using Constraint tagging!!
+regrid_interval   =  0 0 0 0 0 0 0 0
 
 # Max and min box sizes
 max_box_size = 16
@@ -90,7 +108,9 @@ grid_buffer_size = 32
 # center = 256.0 256.0 256.0 # defaults to center of the grid
 
 #global scaling of refinement levels. Larger value equals larger refinement levels
-grid_scaling = 1.0
+grid_scaling = 1.666
+
+
 
 ################################################## Boundary Conditions parameters
 ##################################################
@@ -152,18 +172,39 @@ shift_Gamma_coeff = 0.75
 eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
-formulation = 1 # 1 for BSSN, 0 for CCZ4
-kappa1 = 0
+formulation = 0 # 1 for BSSN, 0 for CCZ4
+kappa1 = 0.1
 kappa2 = 0.
-kappa3 = 0
+kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
 # coefficient for KO numerical dissipation
-#sigma = 0.3 #default
 sigma = 0.3
 
 min_chi = 1.e-4
 min_lapse = 1.e-4
+
+
+
+################################################## Excision Parameters
+##################################################
+
+##outer radius to excise quantities
+outer_excision = 62
+
+## Excise diagnostic quantities using several methods
+excision_with_chi = 1  ##Excise using apparent horizon chi
+
+
+excision_with_cutoff = 0 ##Excise using predefined cutoff
+## cutoff used for diagnostic excision. 
+inner_r = 0. 
+
+excision_with_AH = 0 ## Dont Activate. Horrible performance
+## buffer region when excising diagnostics inside horizon. Only used for excision_with_AH
+AH_buffer = 0.97
+
+
 
 ################################################## Apparent Horizon Finder parameters
 ##################################################
@@ -171,7 +212,7 @@ min_lapse = 1.e-4
 AH_activate = 1
 
 ## NOTE: AH_num_ranks must be less or equal than cpu-per-task in job script
-AH_num_ranks = 8
+AH_num_ranks = 4
 AH_num_points_u = 49
 AH_num_points_v = 48
 AH_solve_interval = 1
@@ -185,7 +226,7 @@ AH_num_extra_vars = 1
 AH_extra_vars = chi
 
 
-AH_level_to_run = 5
+AH_level_to_run = 1
 AH_allow_re_attempt = 1
 AH_start_time = 0.
 AH_give_up_time = -1. # -1 to never
@@ -198,25 +239,19 @@ AH_coords_subpath = "AH/"
 AH_stats_prefix = "../AH/AH_stats"
 AH_coords_prefix = "AH_coords"
 
-################################################## Excision Parameters
-##################################################
-excision_with_AH = 0 ## dont activate. I haven't debugged yet...
-excise_with_chi = 1
-
 
 ################################################## Extraction parameters
 ##################################################
 
-# extraction_center = 256 256 256 # defaults to center
+activate_extraction = 1
+calculate_constraint_norms = 1
+write_extraction = 0
 
-activate_extraction = 0
-calculate_constraint_norms = 0
 
 
 num_extraction_radii = 2
-extraction_radii = 50.0 100.0
-inner_r = 0.28 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
-outer_r = 120.0
+extraction_radii = 40.0 60
+outer_r = 60
 extraction_levels = 2 2
 num_points_phi = 24
 num_points_theta = 37
@@ -232,7 +267,7 @@ modes = 2 0 # l m for spherical harmonics
 
 integral_file_prefix = "Weyl4_mode_"
 
-write_extraction = 0
 extraction_subpath = "/extraction" # directory for 'write_extraction = 1'
 extraction_file_prefix = "Weyl4_extraction_"
+# extraction_center = 256 256 256 # defaults to center
 

@@ -30,15 +30,17 @@ class CustomTaggingCriterion
     const bool m_activate_extraction;
     const bool m_activate_ham_tagging;
     const bool m_activate_gauss_tagging;
+    const bool m_activate_effmetric_tagging;
 
 
   public:
     CustomTaggingCriterion(double dx, const int a_level, const double a_L,    
                                   const std::array<double, CH_SPACEDIM> a_center,
                                   const spherical_extraction_params_t a_params,
-                                  const bool activate_extraction = false,
-                                  const bool m_activate_gauss_tagging = false,
-                                  const bool m_activate_ham_tagging = false) : m_center{a_center}, m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{activate_extraction}, m_activate_ham_tagging{m_activate_ham_tagging}, m_activate_gauss_tagging{m_activate_gauss_tagging} 
+                                  const bool a_activate_extraction = false,
+                                  const bool a_activate_gauss_tagging = false,
+                                  const bool a_activate_ham_tagging = false,
+                                  const bool a_activate_effmetric_tagging = false) : m_center{a_center}, m_dx(dx), m_L{a_L}, m_params{a_params}, m_level{a_level}, m_activate_extraction{a_activate_extraction}, m_activate_ham_tagging{a_activate_ham_tagging}, m_activate_gauss_tagging{a_activate_gauss_tagging} , m_activate_effmetric_tagging{a_activate_effmetric_tagging}
                                   {
                                   };
 
@@ -105,6 +107,20 @@ class CustomTaggingCriterion
         return criterion;
     }
 
+    template <class data_t>
+    data_t EffMetricTagging(Cell<data_t> current_cell) const
+    {
+        data_t criterion { 0. };
+        if (m_activate_effmetric_tagging)
+        {
+            //Hamiltonian tagging
+            auto gnn = current_cell.load_vars(c_gnn);
+            criterion += abs(gnn);
+        }
+
+        return criterion;
+    }
+
     template <class data_t> 
     void compute(Cell<data_t> current_cell) const
     {
@@ -119,8 +135,12 @@ class CustomTaggingCriterion
         //then run Extraction tagging
         data_t ExtractionTaggingCriterion { ExtractionTagging(current_cell) };
 
+        //then run effective metric tagging
+        data_t EffMetricTaggingCriterion { EffMetricTagging(current_cell) };
+
         data_t maxFixedGridExtraction { simd_max(FixedGridsTaggingCriterion, ExtractionTaggingCriterion) };
-        data_t criterion { simd_max(maxFixedGridExtraction, ConstraintTaggingCriterion) };
+        data_t maxEffMetric { simd_max(maxFixedGridExtraction, EffMetricTaggingCriterion) };
+        data_t criterion { simd_max(maxEffMetric, ConstraintTaggingCriterion) };
 
         // Write back into the flattened Chombo box
         current_cell.store_vars(criterion, 0);

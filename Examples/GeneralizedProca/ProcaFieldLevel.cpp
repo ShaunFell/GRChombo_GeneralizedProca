@@ -105,17 +105,12 @@ void ProcaFieldLevel::prePlotLevel()
     SecondClassConstraint<ProcaPotential> proca_eff_met(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
     ProcaSquared Asquared(m_dx);
     EnergyAndAngularMomentum<ProcaFieldWithPotential> EM(m_dx, proca_field, m_p.center);
+    MatterConstraints<ProcaFieldWithPotential> matter_constraints(proca_field, m_dx, m_p.G_Newton, c_Ham, Interval(c_Mom1, c_Mom3), c_Ham_abs_sum,Interval(c_Mom_abs_sum1,c_Mom_abs_sum3));
 
     //compute diagnostics on each cell of current level
     BoxLoops::loop(
         make_compute_pack(
-            MatterConstraints<ProcaFieldWithPotential>(proca_field, 
-                                                        m_dx, m_p.G_Newton, 
-                                                        c_Ham, 
-                                                        Interval(c_Mom1, c_Mom3),
-                                                        c_Ham_abs_sum,
-                                                        Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
-                                                        ),
+            matter_constraints,
             Asquared,
             proca_constraint,
             proca_eff_met,
@@ -230,7 +225,7 @@ void ProcaFieldLevel::preTagCells()
 {
     CH_TIME("ProcaFieldLevel::preTagCells");
 
-    if (m_p.activate_gauss_tagging || m_p.activate_ham_tagging)
+    if (m_p.activate_gauss_tagging || m_p.activate_ham_tagging || m_p.activate_effmetric_tagging)
     {
 
         //fill all ghosts
@@ -240,72 +235,72 @@ void ProcaFieldLevel::preTagCells()
         ProcaPotential potential(m_p.potential_params);
         ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
         GaussConstraint<ProcaPotential> proca_constraint(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
+        SecondClassConstraint<ProcaPotential> proca_eff_met(m_dx, m_p.potential_params.mass, m_p.proca_params.vector_damping, potential);
+        MatterConstraints<ProcaFieldWithPotential> matter_constraints(proca_field, m_dx, m_p.G_Newton, 
+                                                            c_Ham,  Interval(c_Mom1, c_Mom3),
+                                                            c_Ham_abs_sum, Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
+                                                            );
 
 
         //compute Hamiltonian and Guass diagnostics on each cell of current level as these are required for tagging
         BoxLoops::loop(
-            make_compute_pack(
-                MatterConstraints<ProcaFieldWithPotential>(proca_field, 
-                                                            m_dx, m_p.G_Newton, 
-                                                            c_Ham, 
-                                                            Interval(c_Mom1, c_Mom3),
-                                                            c_Ham_abs_sum,
-                                                            Interval(c_Mom_abs_sum1,c_Mom_abs_sum3)
-                                                            ),
-                GaussConstraint<ProcaPotential>(m_dx, 
-                                                m_p.potential_params.mass, 
-                                                m_p.proca_params.vector_damping, 
-                                                potential)
-                ),
+            make_compute_pack(proca_constraint, proca_eff_met, matter_constraints), 
             m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
         
-
-
-        //excision of diagnostics
-        if (m_p.excise_with_AH && m_p.AH_activate)
-        {
-            //shouldnt need to resolve AH
-
-            //query AH 
-            auto AH { m_bh_amr.m_ah_finder.get(0) };
-            double minRadius { AH -> get_min_F() };
-
-            ExcisionDiagnosticsWithAH<ProcaFieldWithPotential> excisor (m_dx, m_p.center, minRadius, m_p.AH_buffer);
-
+        if (m_time==0.)
+        { //run excision at t==0 using knowledge of horizon from initial data
+            
+            double kerr_spin = m_p.kerr_params.spin;
+            double kerr_mass = m_p.kerr_params.mass;
+            double cutoff { 1./4. * kerr_mass * (1 + sqrt(1 - kerr_spin*kerr_spin)) };
+            //excise diagnostics according to parameters set in parameter file
+            ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, cutoff);
             BoxLoops::loop(
                 excisor,
-                m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-                disable_simd()
-            ); 
-
-        } else if (m_p.excise_with_chi && m_p.AH_activate) 
-        {
-            
-            //Excise with conformal factor
-            auto AH_mass { m_bh_amr.m_ah_finder.get(0) -> m_mass };
-            auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
-            double AH_dimless_spin { AH_spin / AH_mass };
-
-            ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excision_init(m_dx, m_p.kerr_params.center, AH_dimless_spin, m_p.outer_excision);
-
-            BoxLoops::loop(
-                excision_init,
                 m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
             ) ;
-
-        } else if (m_p.excise_with_cutoff)
+        } else
         {
-        
-            ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
-            //excise diagnostics according to parameters set in parameter file
-            BoxLoops::loop(
-                excisor,
-                m_state_diagnostics, m_state_diagnostics, SKIP_GHOST_CELLS,
-                disable_simd()
-            ); 
+            //excision of diagnostics
+            if (m_p.excise_with_AH && m_p.AH_activate)
+            {
+                //query AH 
+                auto AH { m_bh_amr.m_ah_finder.get(0) };
+                double minRadius { AH -> get_min_F() };
 
-        }// end of excision
+                ExcisionDiagnosticsWithAH<ProcaFieldWithPotential> excisor (m_dx, m_p.center, minRadius, m_p.AH_buffer);
+                BoxLoops::loop(
+                    excisor,
+                    m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
+                ) ;
+
+            } else if (m_p.excise_with_chi && m_p.AH_activate) 
+            {
+                //Excise with conformal factor
+                auto AH_mass { m_bh_amr.m_ah_finder.get(0) -> m_mass };
+                auto AH_spin { m_bh_amr.m_ah_finder.get(0) -> m_spin };
+                double AH_dimless_spin { AH_spin / AH_mass };
+
+                ExcisionDiagnosticsWithChi<ProcaFieldWithPotential> excisor(m_dx, m_p.kerr_params.center, AH_dimless_spin, m_p.outer_excision);
+
+                BoxLoops::loop(
+                    excisor,
+                    m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
+                ) ;
+
+            } else if (m_p.excise_with_cutoff)
+            {
+                //excise diagnostics according to parameters set in parameter file
+                ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
+                BoxLoops::loop(
+                    excisor,
+                    m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
+                ) ;
+
+            }// end of excision
+        }
+
     };
 
 };
@@ -318,24 +313,25 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
 {
     CH_TIME("ProcaFieldLevel::computeTaggingCriterion");
 
-    if (m_p.activate_gauss_tagging || m_p.activate_ham_tagging) {
-        BoxLoops::loop(
-            CustomTaggingCriterion(
+    if (m_p.activate_gauss_tagging || m_p.activate_ham_tagging || m_p.activate_extraction) {
+        CustomTaggingCriterion tagger(
                                     m_dx, m_level, m_p.grid_scaling*m_p.L, 
                                     m_p.center,
                                     m_p.extraction_params, 
                                     m_p.activate_extraction,
                                     m_p.activate_gauss_tagging,
                                     m_p.activate_ham_tagging
-                                ),
-            current_state_diagnostics, 
-            tagging_criterion
-        ); 
+                                );
+
+        BoxLoops::loop(tagger, current_state_diagnostics, tagging_criterion, disable_simd());
     } else {
-        BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level,
-                                                    m_p.grid_scaling*m_p.L, m_p.center),
-                       current_state, tagging_criterion, disable_simd());
+       FixedGridsTaggingCriterion tagger(m_dx, m_level,
+                                                    m_p.grid_scaling*m_p.L, m_p.center);
+        BoxLoops::loop(tagger, current_state, tagging_criterion, disable_simd());
+
     };
+
+    
     
 }
 
@@ -343,11 +339,11 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
 void ProcaFieldLevel::specificPostTimeStep()
 {
     CH_TIME("ProcaFieldLevel::specificPostTimeStep");
+    bool first_step = (m_time == 0.); //is this the first call of posttimestep?
 
 
     //  ##### AH Finder ####
 
-    #ifdef USE_AHFINDER
     if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time) && m_p.AH_activate)
     {
         fillAllGhosts();
@@ -355,18 +351,25 @@ void ProcaFieldLevel::specificPostTimeStep()
                        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
     }
 
-    if (m_p.AH_activate && m_level == m_p.AH_params.level_to_run)
+    if (m_p.AH_activate)
     {
-
-        m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
-
+        if (m_level == m_p.AH_params.level_to_run)
+        {
+            m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
+        }
+        
+        if (first_step)
+        {
+            pout() << "Running AH Finder at t=0" << endl;
+            m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
+        }
     }
-    #endif //USE_AHFINDER
+
+
 
     
     //  ##### Waveform Extraction ####
 
-    bool first_step = (m_time == m_dt); //is this the first call of posttimestep?
 
     if (m_p.activate_extraction)
     {

@@ -78,6 +78,17 @@ cp $VISITSESSIONGUIFILE $OUTPATH
 sed -i "s/XXXXXXXX/${SLURM_JOB_ID}/g" ${OUTPATH}/visit.session
 sed -i "s/XXXXXXXX/${SLURM_JOB_ID}/g" ${OUTPATH}/visit.session.gui
 
+## Create GRChombo directories already. This is necessary since we dynamically create the output directory, but restarting from a checkpoint file doesnt do this.
+#HDF5SUBPATH=cat params/${PARAMFILE} | grep -E "^hdf5_subpath" | sed 's/[^"]*"\([^"]*\).*/\1/'
+#POUTSUBPATH=cat params/${PARAMFILE} | grep -E "^pout_subpath" | sed 's/[^"]*"\([^"]*\).*/\1/'
+#DATASUBPATH=cat params/${PARAMFILE} | grep -E "^data_subpath" | sed 's/[^"]*"\([^"]*\).*/\1/'
+#mkdir "${OUTPATH}/${HDF5SUBPATH}"
+#mkdir "${OUTPATH}/${POUTSUBPATH}"
+#mkdir "${OUTPATH}/${DATASUBPATH}"
+#echo "hdf5 subpath: ${HDF5SUBPATH}"
+#echo "pout subpath: ${POUTSUBPATH}"
+#echo "data subpath: ${DATASUBPATH}"
+
 
 
 # cp parameters file to the output dir

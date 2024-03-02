@@ -32,6 +32,8 @@ class ProcaPotential{
             Asquared += gamma_UU[i][j] * vars.Avec[i] * vars.Avec[j];
         }
 
+
+        // V = mass^2 (A^2 + 2 lambda A^2 A^2)
         data_t potPrefactor {pow(m_params.mass,2.0)  };
         V =  potPrefactor * (Asquared + 2.0 * lambda * Asquared * Asquared);
         dVdA = potPrefactor * ( 1.0 + 4.0*lambda*Asquared);

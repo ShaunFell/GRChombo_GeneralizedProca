@@ -55,6 +55,7 @@ class SimulationParameters : public SimulationParametersBase
         //tagging
         pp.load("activate_ham_tagging", activate_ham_tagging, false);
         pp.load("activate_gauss_tagging", activate_gauss_tagging, false);
+        pp.load("activate_effmetric_tagging", activate_effmetric_tagging, false);
 
         //grid parameters
         pp.load("grid_scaling", grid_scaling, 1.);
@@ -124,6 +125,7 @@ class SimulationParameters : public SimulationParametersBase
 
     bool activate_ham_tagging;
     bool activate_gauss_tagging;
+    bool activate_effmetric_tagging;
     double grid_scaling;
 
     double AH_initial_guess;

@@ -9,7 +9,7 @@
 ####                Using CCZ4 with diagnostic excision
 ####                Using outer excision of diagnostics
 ####                 This run also uses the theoretical optimal amount of cpus, nodes, and cores
-####                            We use 40 nodes, 8 cores per rank, 16 tasks per node
+####                            We use 20 nodes, 10 cores per rank, 4 tasks per node
 
 ################################################## Filesystem parameters
 
@@ -17,7 +17,7 @@
 verbosity = 10
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23196199"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23201973"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -27,8 +27,8 @@ checkpoint_interval = 1
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 1
-num_plot_vars = 9
-plot_vars = chi Ham Gauss Asquared gnn Z rho rhoJ rhoE
+num_plot_vars = 7
+plot_vars = chi Ham Gauss Asquared rho rhoJ rhoE
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -38,13 +38,14 @@ data_subpath = "data"
 
 # change the name of output files
 # pout_prefix = "pout"
-print_progress_only_to_rank_0 = 1
+print_progress_only_to_rank_0 = 0
 
 # ignore_checkpoint_name_mismatch = 0
 # write_plot_ghosts = 0
 
 #calculate integrals of matter densities
 calculate_norms = 1
+calculate_constraint_norms = 1
 
 ################################################# constraint tagging
 ##################################################
@@ -86,7 +87,7 @@ initial_proca_amplitude = 0.1
 ################################################## Grid parameters
 ##################################################
 
-N_full = 128
+N_full = 112
 L_full = 224
 
 max_level = 8
@@ -190,7 +191,7 @@ min_lapse = 1.e-4
 ##################################################
 
 ##outer radius to excise quantities
-outer_excision = 60
+outer_excision = 108
 
 ## Excise diagnostic quantities using several methods
 excision_with_chi = 1  ##Excise using apparent horizon chi
@@ -246,11 +247,10 @@ AH_coords_prefix = "AH_coords"
 # extraction_center = 256 256 256 # defaults to center
 
 activate_extraction = 1
-calculate_constraint_norms = 1
 
 
 num_extraction_radii = 2
-extraction_radii = 40.0 60
+extraction_radii = 60.0 100
 outer_r = 120.0
 extraction_levels = 2 2
 num_points_phi = 24

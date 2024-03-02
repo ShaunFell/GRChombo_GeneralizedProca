@@ -66,4 +66,5 @@ Current initial condition of Proca field:
 Kerr black metric is in form of quasi-isotropic coordinates
 
 The first few seconds of the simulation consistute the *relaxation time* for the conformal factor. We use the ```ChiRelaxation``` method to minimize violations of the Hamiltonian constraint. This is accomplished by the modification of the ```evaluateRHS``` method of the level class. Before a simulation time of $t_{\chi}$, we evolve the formula $$\partial_t \chi = \chi*H*s$$, where $s$ is the relaxation speed. Note: This differs from the implementation of ```ChiRelaxation``` is base GRChombo. In the original source code, they divided by $\chi$, instead of multiplying it. This fails for Kerr in Quasi-Isotropic coordinates since the conformal factor goes to zero near the singularity, hence the flow equation becomes unusable. 
+Note also that this reduces the control over the initial state of the system since the relaxation can asymptote to a different physical system
 

@@ -52,27 +52,28 @@ int runGRChombo(int argc, char *argv[])
 
     std::chrono::time_point<Clock> start_time = Clock::now();
 
-#ifdef USE_AHFINDER //Chombo make flags
+    #ifdef USE_AHFINDER //Chombo make flags
     if (sim_params.AH_activate)
     {
         pout() << "Defining surface geometry"<<endl;
         AHSurfaceGeometry sph(sim_params.kerr_params.center);
 
-#ifdef USE_CHI_CONTOURS //located in UserVariables
+    #ifdef USE_CHI_CONTOURS //located in UserVariables
         std::string str_chi = std::to_string(
             sim_params.AH_params.func_params.look_for_chi_contour);
         sim_params.AH_params.stats_prefix = "stats_chi_" + str_chi + "_";
         sim_params.AH_params.coords_prefix = "coords_chi_" + str_chi + "_";
-        bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
-#else 
-        pout() << "adding apparent horizon"<<endl;
-        bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params);
-#endif //USE_CHI_CONTOURS
+        bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params, true);
+    #else 
+        pout() << "Adding initial apparent horizon"<<endl;
+        bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params, true); //True flag tells AH_Finder to solve for AH in initial setup
+    #endif //USE_CHI_CONTOURS
     }
-#endif //USE_AHFINDER
+    #endif //USE_AHFINDER
 
 
     //call the PostTimeStep right now!!!!
+    pout() << "Running initial PostTimeStep" << endl;
     auto task = [](GRAMRLevel *level)
     {
         if (level->time() == 0.)
@@ -101,15 +102,15 @@ int runGRChombo(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-    mainSetup(argc, argv);
+    mainSetup(argc, argv); //Setup MPI objects
 
-    int status = runGRChombo(argc, argv);
+    int status = runGRChombo(argc, argv); //Run Simulation
 
     if (status == 0)
         pout() << "GRChombo finished." << std::endl;
     else
         pout() << "GRChombo failed with return code " << status << std::endl;
 
-    mainFinalize();
+    mainFinalize(); //Memory cleanup
     return status;
 }

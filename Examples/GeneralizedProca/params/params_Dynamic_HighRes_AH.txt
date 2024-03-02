@@ -13,10 +13,10 @@
 ################################################## Filesystem parameters
 
 
-verbosity = 10
+verbosity = 1
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23197690"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23196102"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 
@@ -38,7 +38,7 @@ data_subpath = "data"
 
 # change the name of output files
 # pout_prefix = "pout"
-print_progress_only_to_rank_0 = 1
+print_progress_only_to_rank_0 = 0
 
 # ignore_checkpoint_name_mismatch = 0
 # write_plot_ghosts = 0
