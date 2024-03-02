@@ -16,7 +16,7 @@ plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
-checkpoint_interval = 1
+checkpoint_interval = 100
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 1
@@ -111,7 +111,7 @@ isPeriodic = 0 0 0
 
 #sommerfeld outgoing-radiation condition
 hi_boundary = 1 1 1
-lo_boundary = 1 1 1
+lo_boundary = 1 1 2
 
 # if reflective boundaries selected, must set
 # parity of all vars (in order given by UserVariables.hpp)
@@ -123,7 +123,10 @@ vars_parity            = 0 0 4 6 0 5 0    #chi and hij
                          0 0 4 6 0 5 0    #K and Aij
                          0 1 2 3          #Theta and Gamma
                          0 1 2 3 1 2 3    #lapse shift and B
-vars_parity_diagnostic = 0 1 2 3          #Ham and Mom
+                         0 1 2 3 1 2 3 0  # phi, Ai, Ei, Z 
+vars_parity_diagnostic = 0 0 1 2 3 0 0 0    #Ham and Mom
+                         0 7                # Weyl scalars
+                         0 0 0 0 0 0 0 0    # Other vars all scalars
 
 # if sommerfeld boundaries selected, must select
 # non zero asymptotic values
