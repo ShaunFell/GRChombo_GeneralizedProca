@@ -80,9 +80,11 @@ public:
 
         data_t alpha = kerrMass*m_paramsPotential.mass;
         data_t r0_BL { 1.0/(m_paramsPotential.mass*alpha) };
+	data_t r0_QI { 0.25 * (2 * r0_BL - rP_BL + 2 * sqrt(r0_BL * r0_BL - r0_BL * rP_BL)) };
 
         // if outside horizon, set initial data, else if inside, truncate to 0
-        mattervars.Avec[0] = m_params.amplitude*pow(vars.chi, 3.)*exp(-r_BL/r0_BL);
+        //mattervars.Avec[0] = m_params.amplitude*pow(vars.chi, 3.)*exp(-r_BL/r0_BL);
+	mattervars.Avec[0] = m_params.amplitude * pow(vars.chi,3.) * exp(-rho/r0_QI); //in terms of QI coordinates
         mattervars.Avec[1] = 0.;
         mattervars.Avec[2] = 0.;
         mattervars.phi = 0.;

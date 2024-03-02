@@ -16,7 +16,7 @@
 verbosity = 1
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23196102"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/dev_GRChombo_Proca_23204188"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 
