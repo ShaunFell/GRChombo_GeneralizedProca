@@ -124,7 +124,7 @@ void ProcaFieldLevel::prePlotLevel()
         m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
     
-
+/*
     //excision of diagnostics
     if (m_p.excise_with_AH && m_p.AH_activate)
     {
@@ -169,7 +169,7 @@ void ProcaFieldLevel::prePlotLevel()
         ); 
 
     }// end of excision
-
+*/
     #ifdef USE_AHFINDER
     //already calculated in specific PostTimeStep
     if(m_p.AH_activate && m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time)){
@@ -261,7 +261,7 @@ void ProcaFieldLevel::preTagCells()
         );
         
 
-
+/*
         //excision of diagnostics
         if (m_p.excise_with_AH && m_p.AH_activate)
         {
@@ -306,6 +306,7 @@ void ProcaFieldLevel::preTagCells()
             ); 
 
         }// end of excision
+*/
     };
 
 };
@@ -333,7 +334,7 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
         ); 
     } else {
         BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level,
-                                                    m_p.grid_scaling*m_p.L, m_p.center),
+                                                  m_p.grid_scaling * m_p.L, m_p.center),
                        current_state, tagging_criterion, disable_simd());
     };
     
@@ -344,7 +345,7 @@ void ProcaFieldLevel::specificPostTimeStep()
 {
     CH_TIME("ProcaFieldLevel::specificPostTimeStep");
 
-
+/*
     //  ##### AH Finder ####
 
     #ifdef USE_AHFINDER
@@ -362,7 +363,7 @@ void ProcaFieldLevel::specificPostTimeStep()
 
     }
     #endif //USE_AHFINDER
-
+*/
     
     //  ##### Waveform Extraction ####
 
@@ -391,7 +392,7 @@ void ProcaFieldLevel::specificPostTimeStep()
                     m_p.G_Newton),
                 m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
             );
-
+/*
             //excision of diagnostics
             if (m_p.excise_with_AH && m_p.AH_activate)
             {
@@ -436,7 +437,7 @@ void ProcaFieldLevel::specificPostTimeStep()
                 ); 
 
             }// end of excision
-
+*/
             if (m_level == min_level)
             {
                 CH_TIME("WeylExtraction");
@@ -457,23 +458,38 @@ void ProcaFieldLevel::specificPostTimeStep()
 
     //  ##### Constraint Norms ####
 
-    if (m_p.calculate_norms)
+    int coarsest_level = 0;
+    bool at_course_timestep_on_any_level = at_level_timestep_multiple(coarsest_level);
+    // Dont want to do this on every level at posttimestep, only where we will actually
+    // do the outputs, so on the coarsest level timestep (but still need to fill data
+    // on the finer levels)
+    if (m_p.calculate_norms && at_course_timestep_on_any_level)
     {
+        // this operation to fill all ghosts is expensive so avoid doing it too
+        // often is possible. We could specific only some variables get their
+        // ghosts filled (as in the Weyl case above), but for the constraints we probably
+        // need the majority so we won't gain much by specifying. But at least avoid doing it on
+        // every substep.
         fillAllGhosts();
-
+        ProcaPotential potential(m_p.potential_params);
+        ProcaFieldWithPotential proca_field(potential, m_p.proca_params);
         EnergyAndAngularMomentum<ProcaFieldWithPotential> EM(m_dx, proca_field, m_p.center);
         BoxLoops::loop(
             make_compute_pack(
                 Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3))
+                // Should EM be here too to assign rho and rhoE etc?
             ),
             m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
 
+        // Once values calculated on all levels, only the coarsest level does
+        // the integral and the output. It will use finer level data if it exists.
         if (m_level == 0)
         {
             AMRReductions<VariableType::diagnostic> amr_reductions(m_gr_amr);
             double L2_Ham = amr_reductions.norm(c_Ham);
             double L2_Mom = amr_reductions.norm(Interval(c_Mom1, c_Mom3));
+            // Have these values been assigned on all levels of the grid? 
             double L2_rho = amr_reductions.norm(c_rho);
             double L2_rhoE = amr_reductions.norm(c_rhoE);
             double L2_rhoJ = amr_reductions.norm(c_rhoJ);

@@ -1,11 +1,7 @@
 
 
 ### GeneralizedProca
-###  params_Dynamic_HighRes_NoExcision.txt
-
-
-#### NOTES: This run tests chi relaxation with multiple of chi in RHS to resolve issue with quasi-isotropic coords
-####                Using CCZ4 with no excision
+###  params_Dynamic_LowRes_NoExcision.txt
 
 ################################################## Filesystem parameters
 
@@ -13,7 +9,8 @@
 verbosity = 0
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23189988"
+output_path = ""
+#"/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23173215"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
 #restart_file = GeneralizedProca_000003.3d.hdf5
@@ -53,8 +50,8 @@ regrid_interval   =  0 0 0 0 0 0
 
 ################################################## Chi Relaxation
 ##################################################
-chi_relaxation_speed = 0.001
-chi_relaxation_time = 2.50
+chi_relaxation_speed = 0.01
+chi_relaxation_time = 0
 
 
 ################################################## Physical constants
@@ -67,12 +64,12 @@ G_Newton = 1.0
 # Kerr parameters
 kerr_mass = 1.0
 kerr_spin = 0.99
-kerr_center = 64 64 64 # defauts to center
+#kerr_center = 64 64 64 # defauts to center
 kerr_spindir = 0 0 1 #along z-axis
 
 
 # Proca parameters
-proca_damping = 1.0 #kappa value for auxiliary Z field
+proca_damping = 1.0
 
 # Potential parameters
 proca_mass = 0.3
@@ -95,7 +92,7 @@ min_box_size = 16
 tag_buffer_size = 0
 
 #grid spacing between refinement levels
-grid_buffer_size = 32
+# grid_buffer_size = 16
 # fill_ratio = 0.7
 # num_ghosts = 3
 # center = 256.0 256.0 256.0 # defaults to center of the grid
@@ -164,12 +161,14 @@ eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
 formulation = 0 # 1 for BSSN, 0 for CCZ4
+## Typical values: K1 = 0.1, K2 = 0, K3 = 1
 kappa1 = 0.1
 kappa2 = 0.
 kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
 # coefficient for KO numerical dissipation
+#sigma = 0.3 #default
 sigma = 0.3
 
 min_chi = 1.e-4
@@ -183,8 +182,8 @@ excision_with_AH = 0 ## Dont Activate. Horrible performance
 excision_with_chi = 0  ##Excise using apparent horizon chi
 excision_with_cutoff = 0 ##Excise using predefined cutoff
 
-## cutoff.  Also used for diagnostic excision. 
-inner_r = 0. #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
+## cutoff.  Also used for diagnostic excision
+inner_r = 0.0 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
 
 ## buffer region when excising diagnostics inside horizon
 AH_buffer = 0.97

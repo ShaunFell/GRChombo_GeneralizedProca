@@ -133,7 +133,7 @@ class SimulationParameters : public SimulationParametersBase
     bool excise_with_cutoff;
     double AH_buffer;
     double outer_excision;
-    double calculate_norms;
+    bool calculate_norms;
 
     //chi relaxation
     double relaxation_time;

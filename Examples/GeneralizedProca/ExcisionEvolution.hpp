@@ -9,7 +9,11 @@
 #include "Tensor.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS - total number of components
 #include "VarsTools.hpp"
+
+#ifdef USE_AHFINDER
 #include "AHInterpolation.hpp"
+#endif
+
 #include <algorithm>
 #include "simd.hpp"
 
