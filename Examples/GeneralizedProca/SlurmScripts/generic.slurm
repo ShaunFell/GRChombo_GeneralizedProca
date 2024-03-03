@@ -42,9 +42,9 @@ module load compiler/gnu/10.2 mpi/openmpi lib/hdf5/1.12.2-gnu-10.2-openmpi-4.1 n
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PETSC_DIR}/lib
 
 # NO OVERLOAD allowed
-export MPIRUN_OPTIONS="--bind-to core --map-by socket:PE=${OMP_NUM_THREADS}"
 
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+export MPIRUN_OPTIONS="--bind-to core --map-by socket:PE=${OMP_NUM_THREADS}"
 export NUM_CORES=${SLURM_NTASKS}*${OMP_NUM_THREADS}
 ## as suggested by Baden-Wurttemburg Cluster support ticket
 export OMPI_MCA_btl_openib_if_exclude=mlx5_2

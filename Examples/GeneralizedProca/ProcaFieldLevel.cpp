@@ -479,10 +479,9 @@ void ProcaFieldLevel::specificPostTimeStep()
         EnergyAndAngularMomentum<ProcaFieldWithPotential> EM(m_dx, proca_field, m_p.center);
         BoxLoops::loop(
             make_compute_pack(
-                Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3),
+                Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
                 EM
-                )
-            ),
+	        ),
             m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
 

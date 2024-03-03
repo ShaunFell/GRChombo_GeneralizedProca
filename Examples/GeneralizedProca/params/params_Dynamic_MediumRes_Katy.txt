@@ -9,7 +9,7 @@
 verbosity = 0
 
 # location / naming of output files
-output_path = ""
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/dev_GRChombo_Proca_23205865"
 #"/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23173215"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
@@ -234,7 +234,7 @@ AH_coords_prefix = "AH_coords"
 
 activate_extraction = 0
 calculate_constraint_norms = 0
-
+calculate_norms=0
 
 num_extraction_radii = 2
 extraction_radii = 50.0 100.0
