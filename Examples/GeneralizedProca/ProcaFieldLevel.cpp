@@ -120,6 +120,7 @@ void ProcaFieldLevel::prePlotLevel()
         );
     
 
+    #ifdef USE_AHFINDER
     //excision of diagnostics
     if (m_p.excise_with_AH && m_p.AH_activate)
     {
@@ -152,7 +153,10 @@ void ProcaFieldLevel::prePlotLevel()
             m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
         ) ;
 
-    } else if (m_p.excise_with_cutoff)
+    }
+    #endif //USE_AHFINDER
+
+    if (m_p.excise_with_cutoff)
     {
     
         ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
@@ -263,6 +267,7 @@ void ProcaFieldLevel::preTagCells()
         } else
         {
             //excision of diagnostics
+            #ifdef USE_AHFINDER
             if (m_p.excise_with_AH && m_p.AH_activate)
             {
                 //query AH 
@@ -289,7 +294,10 @@ void ProcaFieldLevel::preTagCells()
                     m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
                 ) ;
 
-            } else if (m_p.excise_with_cutoff)
+            } 
+            #endif //USE_AHFINDER
+
+            if (m_p.excise_with_cutoff)
             {
                 //excise diagnostics according to parameters set in parameter file
                 ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
@@ -343,7 +351,7 @@ void ProcaFieldLevel::specificPostTimeStep()
 
 
     //  ##### AH Finder ####
-
+    #ifdef USE_AHFINDER
     if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time) && m_p.AH_activate)
     {
         fillAllGhosts();
@@ -364,7 +372,7 @@ void ProcaFieldLevel::specificPostTimeStep()
             m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
         }
     }
-
+    #endif //USE_AHFINDER
 
 
     
@@ -396,6 +404,7 @@ void ProcaFieldLevel::specificPostTimeStep()
             );
 
             //excision of diagnostics
+            #ifdef USE_AHFINDER
             if (m_p.excise_with_AH && m_p.AH_activate)
             {
                 //shouldnt need to resolve AH
@@ -427,7 +436,10 @@ void ProcaFieldLevel::specificPostTimeStep()
                     m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS, disable_simd()
                 ) ;
 
-            } else if (m_p.excise_with_cutoff)
+            } 
+            #endif //USE_AHFINDER
+
+            if (m_p.excise_with_cutoff)
             {
             
                 ExcisionDiagnostics<ProcaFieldWithPotential> excisor (m_dx, m_p.center, m_p.inner_r);
