@@ -46,7 +46,7 @@ max_value = 1.0
 # slice origin and normal direction
 origin_point_x = 64
 origin_point_y = 64
-origin_point_z = 64
+origin_point_z = 0
 normal_in_x = 0
 normal_in_y = 0
 normal_in_z = 1
