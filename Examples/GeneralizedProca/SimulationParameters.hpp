@@ -50,7 +50,7 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("inner_r", inner_r, 0.0);
         pp.load("outer_r", outer_r, 200.0);
         pp.load("outer_excision", outer_excision, 200.0);
-        pp.load("calculate_norms", calculate_norms, true);
+        pp.load("calculate_norms", calculate_norms, false);
 
         //tagging
         pp.load("activate_ham_tagging", activate_ham_tagging, false);
