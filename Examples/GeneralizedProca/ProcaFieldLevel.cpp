@@ -326,7 +326,7 @@ void ProcaFieldLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
         BoxLoops::loop(tagger, current_state_diagnostics, tagging_criterion, disable_simd());
     } else {
        FixedGridsTaggingCriterion tagger(m_dx, m_level,
-                                                    m_p.grid_scaling*m_p.L, m_p.center);
+                                                    m_p.grid_scaling * m_p.L, m_p.center);
         BoxLoops::loop(tagger, current_state, tagging_criterion, disable_simd());
 
     };
@@ -459,9 +459,19 @@ void ProcaFieldLevel::specificPostTimeStep()
 
 
     //  ##### Constraint Norms ####
+    int coarsest_level = 0;
+    bool at_course_timestep_on_any_level = at_level_timestep_multiple(coarsest_level);
+    // Dont want to do this on every level at posttimestep, only where we will actually
+    // do the outputs, so on the coarsest level timestep (but still need to fill data
+    // on the finer levels)
 
-    if (m_p.calculate_norms)
+    if (m_p.calculate_norms && at_course_timestep_on_any_level)
     {
+        // this operation to fill all ghosts is expensive so avoid doing it too
+        // often is possible. We could specific only some variables get their
+        // ghosts filled (as in the Weyl case above), but for the constraints we probably
+        // need the majority so we won't gain much by specifying. But at least avoid doing it on
+        // every substep.
         fillAllGhosts();
 
         ProcaPotential potential(m_p.potential_params);
@@ -469,11 +479,15 @@ void ProcaFieldLevel::specificPostTimeStep()
         EnergyAndAngularMomentum<ProcaFieldWithPotential> EM(m_dx, proca_field, m_p.center);
         BoxLoops::loop(
             make_compute_pack(
-                Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3))
+                Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3),
+                EM
+                )
             ),
             m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS
         );
 
+        // Once values calculated on all levels, only the coarsest level does
+        // the integral and the output. It will use finer level data if it exists.
         if (m_level == 0)
         {
             AMRReductions<VariableType::diagnostic> amr_reductions(m_gr_amr);
