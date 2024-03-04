@@ -41,6 +41,7 @@ class AHInitialGuessDefault
 
 using AHInitialGuessPtr = std::shared_ptr<AHInitialGuessDefault>;
 
+
 /////////////////////////////////////////////////////////
 // Predefined initial guess functions
 /////////////////////////////////////////////////////////
@@ -63,18 +64,19 @@ class AHInitialGuessConstant : public AHInitialGuessDefault
                << std::endl;
     }
 
-#if CH_SPACEDIM == 3
+    #if CH_SPACEDIM == 3
     ALWAYS_INLINE double get(double u, double v) const override
     {
         return m_initial_guess;
     }
-#elif CH_SPACEDIM == 2
+    #elif CH_SPACEDIM == 2
     ALWAYS_INLINE double get(double u) const override
     {
         return m_initial_guess;
     }
-#endif
+    #endif
 };
+
 
 class AHInitialGuessMerger : public AHInitialGuessDefault
 {

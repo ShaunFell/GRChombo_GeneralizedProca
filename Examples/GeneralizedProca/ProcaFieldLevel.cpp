@@ -40,6 +40,8 @@
 #include "ExcisionDiagnostics.hpp"
 #include "ExcisionEvolution.hpp"
 
+#include "AHInitialGuess.hpp"
+
 
 //do things at end of advance step, after RK4 calculation
 void ProcaFieldLevel::specificAdvance()
@@ -363,6 +365,14 @@ void ProcaFieldLevel::specificPostTimeStep()
     {
         if (m_level == m_p.AH_params.level_to_run)
         {
+            //Formulate smart initial guess using previous solution
+            auto new_guess { m_bh_amr.m_ah_finder.get(0) -> get_ave_F() }; //average radius of current AH
+
+            //set new guess
+            auto initguess { m_bh_amr.m_ah_finder.get(0) -> get_petsc_solver().get_initial_guess() };
+            dynamic_cast<AHInitialGuessConstant&>(*initguess).m_initial_guess = new_guess;
+
+            pout() << "Solving AH with initial guess = " << initguess -> get(0,0) << endl;
             m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);    
         }
         

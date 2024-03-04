@@ -44,9 +44,9 @@ set_min_max = 0 # 1 for true, 0 for false
 min_value = 0.0
 max_value = 1.0
 # slice origin and normal direction
-origin_point_x = 64
-origin_point_y = 64
-origin_point_z = 64
+origin_point_x = 128
+origin_point_y = 128
+origin_point_z = 0
 normal_in_x = 0
 normal_in_y = 0
 normal_in_z = 1

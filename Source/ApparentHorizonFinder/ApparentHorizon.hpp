@@ -177,7 +177,7 @@ template <class SurfaceGeometry, class AHFunction> class ApparentHorizon
     //######################################
 
     //###################################### Shauns Modifications
-    // Make m_spin and m_mass public 
+    // Expose m_spin, m_mass, and PETScAHSolver to public
 
     //######################################
     //######################################
@@ -199,7 +199,6 @@ template <class SurfaceGeometry, class AHFunction> class ApparentHorizon
     // prevents resetting the origin when the user externally did 'set_origin'
     // before 'solve'
     bool origin_already_updated;
-
     PETScAHSolver<SurfaceGeometry, AHFunction> solver;
 
 
@@ -207,7 +206,8 @@ template <class SurfaceGeometry, class AHFunction> class ApparentHorizon
     
 
     public:
-    double m_mass, m_spin;
+        double m_mass, m_spin;
+
 };
 
 #include "ApparentHorizon.impl.hpp"

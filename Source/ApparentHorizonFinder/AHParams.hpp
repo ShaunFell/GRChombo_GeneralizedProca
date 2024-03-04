@@ -72,6 +72,7 @@ struct PETSc_params
         {
             pp.load("AH_SNES_max_iterations", tmp_int);
             snes_maxit = tmp_int;
+            pout() << "setting AH_SNES_max_iterations = " << snes_maxit << std::endl;
         }
         if (pp.contains("AH_SNES_max_evaluations"))
         {

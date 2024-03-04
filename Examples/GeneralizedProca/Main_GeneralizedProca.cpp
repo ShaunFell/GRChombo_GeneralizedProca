@@ -20,6 +20,10 @@
 // Problem specific includes:
 #include "ProcaFieldLevel.hpp"
 
+#ifdef USE_AHFINDER
+#include "AHInitialGuess.hpp"
+#endif //USE_AHFINDER
+
 // Chombo namespace
 #include "UsingNamespace.H"
 
@@ -46,7 +50,6 @@ int runGRChombo(int argc, char *argv[])
         bh_amr, sim_params.origin, sim_params.dx, sim_params.boundary_params,
         sim_params.verbosity);
     bh_amr.set_interpolator(&interpolator); // also sets puncture_tracker interpolator
-
     using Clock = std::chrono::steady_clock;
     using Minutes = std::chrono::duration<double, std::ratio<60, 1>>;
 
@@ -66,7 +69,7 @@ int runGRChombo(int argc, char *argv[])
         bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params, true);
     #else 
         pout() << "Adding initial apparent horizon"<<endl;
-        bh_amr.m_ah_finder.add_ah(sph, sim_params.AH_initial_guess, sim_params.AH_params, true); //True flag tells AH_Finder to solve for AH in initial setup
+        bh_amr.m_ah_finder.add_ah(sph, (double)sim_params.AH_initial_guess, sim_params.AH_params, true); //True flag tells AH_Finder to solve for AH in initial setup
     #endif //USE_CHI_CONTOURS
     }
     #endif //USE_AHFINDER
