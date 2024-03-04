@@ -1,29 +1,22 @@
 
 
 ### GeneralizedProca
-###  params_Dynamic_HighRes_NoExcision.txt
-
-
-#### NOTES: 
-####                Using chi relaxation
-####                Using CCZ4 with diagnostic excision
-####                Using outer excision of diagnostics
-####                Starting simulation from checkpoint file
+###  params_Dynamic_LowRes_NoExcision.txt
 
 ################################################## Filesystem parameters
 
 
-verbosity = 10
+verbosity = 0
 
 # location / naming of output files
-output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23197690"
+output_path = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/dev_GRChombo_Proca_23207228"
+#"/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23173215"
 chk_prefix = GeneralizedProca_
 plot_prefix = GeneralizedProcap_
-
-#restart_file = "/pfs/work7/workspace/scratch/hd_pb293-WS_GRChombo/testing/GRChombo_Proca_23196687/hdf5/GeneralizedProca_000000.3d.hdf5"
+#restart_file = GeneralizedProca_000003.3d.hdf5
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
-checkpoint_interval = 1
+checkpoint_interval = 100
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 1
@@ -38,25 +31,27 @@ data_subpath = "data"
 
 # change the name of output files
 # pout_prefix = "pout"
-print_progress_only_to_rank_0 = 1
+print_progress_only_to_rank_0 = 0
 
 # ignore_checkpoint_name_mismatch = 0
 # write_plot_ghosts = 0
-
-#calculate integrals of matter densities
-calculate_norms = 1
 
 ################################################# constraint tagging
 ##################################################
 activate_ham_tagging = 0
 activate_gauss_tagging = 0
 
+max_level = 7
+
+# using fixed grid right now. Uncomment when using Constraint tagging!!
+regrid_interval   =  0 0 0 0 0 0 0
 #regrid_threshold = 0.005
+
 
 ################################################## Chi Relaxation
 ##################################################
-chi_relaxation_speed = 0.001
-chi_relaxation_time = 2.50
+chi_relaxation_speed = 0.01
+chi_relaxation_time = 0
 
 
 ################################################## Physical constants
@@ -69,12 +64,12 @@ G_Newton = 1.0
 # Kerr parameters
 kerr_mass = 1.0
 kerr_spin = 0.99
-kerr_center = 64 64 64 # defauts to center
+#kerr_center = 64 64 64 # defauts to center
 kerr_spindir = 0 0 1 #along z-axis
 
 
 # Proca parameters
-proca_damping = 1.0 #kappa value for auxiliary Z field
+proca_damping = 1.0
 
 # Potential parameters
 proca_mass = 0.3
@@ -89,11 +84,6 @@ initial_proca_amplitude = 0.1
 N_full = 64
 L_full = 128
 
-max_level = 8
-
-# using fixed grid right now. Uncomment when using Constraint tagging!!
-regrid_interval   =  0 0 0 0 0 0 0 0
-
 # Max and min box sizes
 max_box_size = 16
 min_box_size = 16
@@ -102,15 +92,13 @@ min_box_size = 16
 tag_buffer_size = 0
 
 #grid spacing between refinement levels
-grid_buffer_size = 32
+# grid_buffer_size = 16
 # fill_ratio = 0.7
 # num_ghosts = 3
 # center = 256.0 256.0 256.0 # defaults to center of the grid
 
 #global scaling of refinement levels. Larger value equals larger refinement levels
-grid_scaling = 1.666
-
-
+grid_scaling = 1.0
 
 ################################################## Boundary Conditions parameters
 ##################################################
@@ -123,7 +111,7 @@ isPeriodic = 0 0 0
 
 #sommerfeld outgoing-radiation condition
 hi_boundary = 1 1 1
-lo_boundary = 1 1 1
+lo_boundary = 1 1 2
 
 # if reflective boundaries selected, must set
 # parity of all vars (in order given by UserVariables.hpp)
@@ -135,7 +123,10 @@ vars_parity            = 0 0 4 6 0 5 0    #chi and hij
                          0 0 4 6 0 5 0    #K and Aij
                          0 1 2 3          #Theta and Gamma
                          0 1 2 3 1 2 3    #lapse shift and B
-vars_parity_diagnostic = 0 1 2 3          #Ham and Mom
+                         0 1 2 3 1 2 3 0  # phi, Ai, Ei, Z 
+vars_parity_diagnostic = 0 0 1 2 3 0 0 0    #Ham and Mom
+                         0 7                # Weyl scalars
+                         0 0 0 0 0 0 0 0    # Other vars all scalars
 
 # if sommerfeld boundaries selected, must select
 # non zero asymptotic values
@@ -173,12 +164,14 @@ eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
 formulation = 0 # 1 for BSSN, 0 for CCZ4
+## Typical values: K1 = 0.1, K2 = 0, K3 = 1
 kappa1 = 0.1
 kappa2 = 0.
 kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
 # coefficient for KO numerical dissipation
+#sigma = 0.3 #default
 sigma = 0.3
 
 min_chi = 1.e-4
@@ -188,20 +181,14 @@ min_lapse = 1.e-4
 
 ################################################## Excision Parameters
 ##################################################
-
-##outer radius to excise quantities
-outer_excision = 62
-
-## Excise diagnostic quantities using several methods
-excision_with_chi = 1  ##Excise using apparent horizon chi
-
-
-excision_with_cutoff = 0 ##Excise using predefined cutoff
-## cutoff used for diagnostic excision. 
-inner_r = 0. 
-
 excision_with_AH = 0 ## Dont Activate. Horrible performance
-## buffer region when excising diagnostics inside horizon. Only used for excision_with_AH
+excision_with_chi = 0  ##Excise using apparent horizon chi
+excision_with_cutoff = 0 ##Excise using predefined cutoff
+
+## cutoff.  Also used for diagnostic excision
+inner_r = 0.0 #minimal horizon size due to extremal kerr in Quasi-Isotropic coordinates with initial mass = 1 and spin 0.99
+
+## buffer region when excising diagnostics inside horizon
 AH_buffer = 0.97
 
 
@@ -209,7 +196,7 @@ AH_buffer = 0.97
 ################################################## Apparent Horizon Finder parameters
 ##################################################
 
-AH_activate = 1
+AH_activate = 0
 
 ## NOTE: AH_num_ranks must be less or equal than cpu-per-task in job script
 AH_num_ranks = 4
@@ -226,7 +213,7 @@ AH_num_extra_vars = 1
 AH_extra_vars = chi
 
 
-AH_level_to_run = 1
+AH_level_to_run = 4
 AH_allow_re_attempt = 1
 AH_start_time = 0.
 AH_give_up_time = -1. # -1 to never
@@ -243,15 +230,15 @@ AH_coords_prefix = "AH_coords"
 ################################################## Extraction parameters
 ##################################################
 
-activate_extraction = 1
-calculate_constraint_norms = 1
-write_extraction = 0
+# extraction_center = 256 256 256 # defaults to center
 
-
+activate_extraction = 0
+calculate_constraint_norms = 0
+calculate_norms=0
 
 num_extraction_radii = 2
-extraction_radii = 40.0 60
-outer_r = 60
+extraction_radii = 50.0 100.0
+outer_r = 120.0
 extraction_levels = 2 2
 num_points_phi = 24
 num_points_theta = 37
@@ -267,7 +254,7 @@ modes = 2 0 # l m for spherical harmonics
 
 integral_file_prefix = "Weyl4_mode_"
 
+write_extraction = 0
 extraction_subpath = "/extraction" # directory for 'write_extraction = 1'
 extraction_file_prefix = "Weyl4_extraction_"
-# extraction_center = 256 256 256 # defaults to center
 

@@ -68,3 +68,21 @@ Kerr black metric is in form of quasi-isotropic coordinates
 The first few seconds of the simulation consistute the *relaxation time* for the conformal factor. We use the ```ChiRelaxation``` method to minimize violations of the Hamiltonian constraint. This is accomplished by the modification of the ```evaluateRHS``` method of the level class. Before a simulation time of $t_{\chi}$, we evolve the formula $$\partial_t \chi = \chi*H*s$$, where $s$ is the relaxation speed. Note: This differs from the implementation of ```ChiRelaxation``` is base GRChombo. In the original source code, they divided by $\chi$, instead of multiplying it. This fails for Kerr in Quasi-Isotropic coordinates since the conformal factor goes to zero near the singularity, hence the flow equation becomes unusable. 
 Note also that this reduces the control over the initial state of the system since the relaxation can asymptote to a different physical system
 
+
+#AH Finder and petsc
+
+I had to compile petsc from source, which wasn't as big of a pain as I had thought it was going to be. I followed these instruction steps:
+
+```
+https://petsc.org/release/install/install_tutorial/#tut-install
+```
+and configured make with (for intel libraries/compilers)
+
+```
+./configure --with-mpi-dir=/software/all/toolkit/Intel_OneAPI/mpi/2021.4.0
+```
+Before running ```make all check```, make sure the environment variable ```$SLURM_NODELIST``` has a non-zero value. The checks done by petsc require running a small mpi task, which requires ```$SLURM_NODELIST```. I ran an interactive job on the Baden-Wurttemberg cluster and execute ```make all check``` there successfully.
+
+Make sure LD_LIBRARY_PATH includes the path to libpetsc.so.*
+
+When running the make commands, it helps to add the option -j X , where X is an integer specifying the number of cores to use. On the BW Cluster, I usually set -j 30

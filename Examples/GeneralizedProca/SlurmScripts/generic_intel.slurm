@@ -38,8 +38,10 @@ export environment="testing"  ## values should be either 'prod' for production o
 # CD to directory with exectable and params folder
 cd "/home/hd/hd_hd/hd_pb293/Documents/Github/ProblemsWithProca/proca-on-kerr/Examples/GeneralizedProca"
 
-module load compiler/gnu/10.2 mpi/openmpi lib/hdf5/1.12.2-gnu-10.2-openmpi-4.1 numlib/gsl/2.6-gnu-10.2 numlib/petsc/3.17.2-gnu-10.2-openmpi-4.1
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PETSC_DIR}/lib
+module load vis/ffmpeg/5.1 numlib/gsl/2.6-intel-19.1 compiler/intel/2021.4.0 lib/hdf5/1.12.2-intel-2021.4.0-impi-2021.4.0 mpi/impi/2021.4.0
+
+# Locate directory containing libpetsc.so.*
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PETSC_DIR}/lib:/home/hd/hd_hd/hd_pb293/Documents/Software/petsc/petsc-3.20.5/arch-linux-c-debug/lib
 
 # NO OVERLOAD allowed
 
