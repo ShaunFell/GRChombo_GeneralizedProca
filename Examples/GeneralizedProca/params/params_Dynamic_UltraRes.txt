@@ -109,7 +109,7 @@ isPeriodic = 0 0 0
 # 0 = static, 1 = sommerfeld, 2 = reflective
 # (see BoundaryConditions.hpp for details)
 
-#sommerfeld outgoing-radiation condition
+#sommerfeld outgoing-radiation condition and leveraging z-axis symmetry
 hi_boundary = 1 1 1
 lo_boundary = 1 1 2
 
@@ -182,7 +182,7 @@ min_lapse = 1.e-4
 ################################################## Excision Parameters
 ##################################################
 excision_with_AH = 0 ## Dont Activate. Horrible performance
-excision_with_chi = 0  ##Excise using apparent horizon chi
+excision_with_chi = 1  ##Excise using apparent horizon chi
 excision_with_cutoff = 0 ##Excise using predefined cutoff
 
 ## cutoff.  Also used for diagnostic excision
@@ -196,7 +196,7 @@ AH_buffer = 0.97
 ################################################## Apparent Horizon Finder parameters
 ##################################################
 
-AH_activate = 0
+AH_activate = 1
 
 ## NOTE: AH_num_ranks must be less or equal than cpu-per-task in job script
 AH_num_ranks = 4
@@ -234,7 +234,7 @@ AH_coords_prefix = "AH_coords"
 
 activate_extraction = 0
 calculate_constraint_norms = 0
-calculate_norms=0
+calculate_norms=1
 
 num_extraction_radii = 2
 extraction_radii = 50.0 100.0

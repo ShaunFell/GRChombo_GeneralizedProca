@@ -69,7 +69,10 @@ The first few seconds of the simulation consistute the *relaxation time* for the
 Note also that this reduces the control over the initial state of the system since the relaxation can asymptote to a different physical system
 
 
-#AH Finder and petsc
+# Boundary Conditions
+We use Sommerfeld boundary conditions, except for the lower z-axis, where we leverage the z-symmetry and only evolve the z>0 region. NOTE!!! This implies we need to multiply all calculated norms by 2!
+
+# AH Finder and petsc
 
 I had to compile petsc from source, which wasn't as big of a pain as I had thought it was going to be. I followed these instruction steps:
 
@@ -85,4 +88,4 @@ Before running ```make all check```, make sure the environment variable ```$SLUR
 
 Make sure LD_LIBRARY_PATH includes the path to libpetsc.so.*
 
-When running the make commands, it helps to add the option -j X , where X is an integer specifying the number of cores to use. On the BW Cluster, I usually set -j 30
+When running the make commands, it helps to add the option -j X , where X is a natural number specifying the number of cores to use. On the BW Cluster, I usually set -j 30
