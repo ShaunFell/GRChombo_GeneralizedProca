@@ -1,5 +1,5 @@
-[!IMPORTANT]
-This repo is depricated. A dedicated library has been built and is available at [GRBoondi](https://github.com/ShaunFell/GRBoondi) 
+> [!IMPORTANT]
+> This repo is depricated. A dedicated library has been built and is available at [GRBoondi](https://github.com/ShaunFell/GRBoondi) 
 
 # GRChombo
 
