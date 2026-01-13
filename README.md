@@ -1,3 +1,6 @@
+[!IMPORTANT]
+This repo is depricated. A dedicated library has been built and is available at [GRBoondi](https://github.com/ShaunFell/GRBoondi) 
+
 # GRChombo
 
 [![status](https://joss.theoj.org/papers/af52e7f1b7637bfa68818fde7c1a34de/status.svg)](https://joss.theoj.org/papers/af52e7f1b7637bfa68818fde7c1a34de)
